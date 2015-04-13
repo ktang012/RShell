@@ -3,7 +3,9 @@
 #include <iostream>
 #include <vector>
 #include <string.h>
+#include <unistd.h>
 #include <boost/tokenizer.hpp>
+#include <sys/utsname.h>
 
 using namespace std;
 using namespace boost;
@@ -19,10 +21,23 @@ using namespace boost;
 // ls;
 // cd Desktop||ls -a;vim touch.cpp&&[ENTER] ls -a
 // cd Desktop
+// ; clear
+// && ls
+// || ls -a
+// NOTE: cd will NOT be tested or used!
+// Re-read specs if unsure!!
 
 void pcmd_prompt() {
-    // REMINDER: add user to prompt message
-    cout << "$ ";
+    string login(getlogin());
+    struct utsname hostname;
+    uname(&hostname);
+    string sysName(hostname.sysname);
+    string machineName(hostname.machine);
+    string nodeName(hostname.nodename);
+    cout << login << "@" << nodeName << "$ ";
+    // <sys/utsname.h> defines the struct utsname which includes info such as:
+    // sysname, nodename, release, version, and machine
+    // uname returns the struct with the wanted information
 }
 
 void parse_into_queue(queue<string> &l, const string &s) {
