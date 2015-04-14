@@ -63,6 +63,7 @@ void print_queue (queue<string> q) {
 }
 
 int main(int argc, char* argv[]) {
+  while (1) {
     // needs to be in while loop -- loop until "exit"
     string cmd_input;
     queue<string> list;
@@ -147,25 +148,11 @@ int main(int argc, char* argv[]) {
          return 1;
        }
        else {
-         cout << "queue size after processing connector: " << list.size() << endl;
-         print_queue(list);
+         cout << "no more connectors to process" << endl;
        }
        cmd.clear();
     }
-
-
-
-    // while list is NOT empty
-        // get executable -- check if "exit"
-            // if "exit" -- exit the ENTIRE program!!
-            // else place into exec cstring
-        // if valid connector -- "&&", "||", ";"
-            // begin execution of exec and flags
-            // return any errors
-            // check logic to see if we continue through list -- break if needed
-        // else if flag
-            // place into flags cstrings
-        // continue through list
+  }
 
     return 0;
 }
