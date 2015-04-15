@@ -5,7 +5,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <boost/tokenizer.hpp>
+#include <boost/algorithm/string.hpp>
 #include <sys/utsname.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 using namespace std;
 using namespace boost;
@@ -62,97 +65,141 @@ void print_queue (queue<string> q) {
     cout << endl;
 }
 
-int main(int argc, char* argv[]) {
-  while (1) {
-    // needs to be in while loop -- loop until "exit"
-    string cmd_input;
-    queue<string> list;
-    pcmd_prompt();
-    getline(cin, cmd_input);
-
-    parse_into_queue(list, cmd_input);
-
-    print_queue(list);
-
-    cout << "init size: " << list.size() << endl;
-
-    vector<string> cmd;
-    while (!list.empty()) {
-       while (!list.empty() && list.front() != "&" && list.front() != "|" && list.front() != ";") {
-         cmd.push_back(list.front());
-         list.pop();
-       }
-
-       if (cmd.size() == 0) {
-           cout << "syntax error!" << endl;
-           return 1;
-       }
-       else if (cmd.at(0) == "exit") {
-         cout << "Exiting RShell" << endl;
-         return 0;
-       }
-       else {
-         // begin exec
-         // return error flag
-         // check logic to see if we continue
-         // NOTE: cmd.at(0) = executable, everything else is flag
-         if (cmd.size() == 1) {
-             cout << "performing executable [" <<  cmd.at(0) << "] with NO flags";
-         }
-         else {
-            cout << "performing executable [" <<  cmd.at(0) << "] with flags: ";
-            for (int i = 1; i < cmd.size(); ++i) {
-            cout << cmd.at(i) << " ";
-            }
-         }
-         cout << endl;
-       }
-
-       cout << "queue size after processing cmd: " << list.size() << endl;
-       print_queue(list);
-
-       if (!list.empty() && list.front() == "&") {
-         list.pop();
-         if (list.front() == "&") {
-             // check logic
-             list.pop();
-         }
-         else {
-             cout << "&" << list.front() << " is not a connector!" << endl;
-             return 1;
-         }
-         cout << "queue size after processing connector: " << list.size() << endl;
-         print_queue(list);
-       }
-       else if (!list.empty() && list.front() == "|") {
-         list.pop();
-         if (list.front() == "|") {
-             // check logic
-             list.pop();
-          }
-          else {
-             cout << "|" << list.front() << " is not a connector!" << endl;
-             return 1;
-          }
-          cout << "queue size after processing connector: " << list.size() << endl;
-          print_queue(list);
-       }
-       else if (!list.empty() && list.front() == ";") {
-         // go onto next
-         list.pop();
-         cout << "queue size after processing connector: " << list.size() << endl;
-         print_queue(list);
-       }
-       else if (!list.empty())  {
-         cout << list.front() <<  " is not a connector!" << endl;
-         return 1;
-       }
-       else {
-         cout << "no more connectors to process" << endl;
-       }
-       cmd.clear();
+// reinitializes v with q until connector
+void parse_connectors(vector<string> &v, queue<string> &q) {
+    while (!q.empty() && q.front() != "&" && q.front() != "|" && q.front() != ";") {
+        v.push_back(q.front());
+        q.pop();
     }
-  }
+}
 
+bool cmd_exit(vector<string> &v) {
+    if (iequals(v.at(0), "exit")) {
+        return true;
+    }
+    return false;
+}
+
+void to_arr_cstring(vector<string> &s, vector<char*> &cs) {
+    for (auto i = 0; i != s.size(); ++i) {
+        cs[i] = &s[i][0];
+    }
+}
+
+bool begin_exec(vector<char*> &cs) {
+    int status;
+    int pid = fork();
+    if (pid < 0) { // error
+        perror("FORK");
+        _exit(-1);
+    }
+    else if (pid == 0) { // child
+        cout << "child process" << endl;
+        if (-1 == execvp(cs[0], cs.data())) {
+            perror("EXEC");
+            _exit(-1);
+        }
+        _exit(0);
+    }
+    else if (pid > 0) { // parent
+        if (-1 == wait(&status)) {
+            perror("WAIT");
+        }
+        if (status != 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+int main(int argc, char* argv[]) {
+    while (1) {
+        string cmd_input;
+        queue<string> list;
+        pcmd_prompt();
+        getline(cin, cmd_input);
+
+        parse_into_queue(list, cmd_input);
+
+        print_queue(list);
+        cout << "init size: " << list.size() << endl;
+
+        vector<string> cmd;
+        bool exec_success = false;
+        while (!list.empty()) {
+            parse_connectors(cmd, list);
+
+            if (cmd.size() == 0) {
+                cout << "ERROR!" << endl;
+                break;
+            }
+            else if (cmd_exit(cmd)) {
+                cout << "Exiting RShell" << endl;
+                return 0;
+            }
+            else {
+                vector<char*> cmd_cstring(cmd.size() + 1);
+                to_arr_cstring(cmd, cmd_cstring);
+                exec_success = begin_exec(cmd_cstring);
+            }
+
+            cout << "queue size after processing cmd: " << list.size() << endl;
+            print_queue(list);
+
+            if (!list.empty() && list.front() == "&") {
+                list.pop();
+                if (!list.empty() && list.front() == "&") {
+                    if (!exec_success) {
+                        cout << "prev cmd fail - ending" << endl;
+                        break;
+                    }
+                    list.pop();
+                }
+                else if (list.empty()) {
+                    cout << "error with connector \"&\"" << endl;
+                    break;
+                }
+                else {
+                    cout << "&" << list.front() << " is not a connector!" << endl;
+                    break;
+                }
+                cout << "queue size after processing connector: " << list.size() << endl;
+                print_queue(list);
+            }
+            else if (!list.empty() && list.front() == "|") {
+                list.pop();
+                if (!list.empty() && list.front() == "|") {
+                    if (exec_success) {
+                        cout << "prev cmd success - ending" << endl;
+                        break;
+                    }
+                    list.pop();
+                }
+                else if (list.empty()) {
+                    cout << "error with connector \"|\"" << endl;
+                    break;
+                }
+                else {
+                    cout << "|" << list.front() << " is not a connector!" << endl;
+                    break;
+                }
+                cout << "queue size after processing connector: " << list.size() << endl;
+                print_queue(list);
+            }
+            else if (!list.empty() && list.front() == ";") {
+                list.pop();
+                cout << "queue size after processing connector: " << list.size() << endl;
+                print_queue(list);
+            }
+            else if (!list.empty())  {
+                cout << list.front() <<  " is not a connector!" << endl;
+                break;
+            }
+            else {
+                cout << "DONE!" << endl;
+            }
+            cmd.clear();
+        }
+    }
     return 0;
 }
