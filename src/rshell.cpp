@@ -123,7 +123,6 @@ bool connect_success(bool status, queue<string> &q) {
         if (!q.empty() && q.front() == "&") {
             q.pop();
             if (!status) {
-                cout << "prev cmd fail - ending" << endl;
                 return false;
             }
             else {
@@ -144,7 +143,6 @@ bool connect_success(bool status, queue<string> &q) {
         if (!q.empty() && q.front() == "|") {
             q.pop();
             if (status) {
-                cout << "prev cmd success - ending" << endl;
                 return false;
             }
             else {
