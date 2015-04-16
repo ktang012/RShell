@@ -69,7 +69,8 @@ void qinfo(queue<string> q) {
 
 // reinitializes v with q until connector
 void parse_connectors(vector<string> &v, queue<string> &q) {
-    while (!q.empty() && q.front() != "&" && q.front() != "|" && q.front() != ";") {
+    while (!q.empty() && q.front() != "&" && q.front() != "|" && q.front() != ";" && q.front() != "#")
+    {
         v.push_back(q.front());
         q.pop();
     }
@@ -130,12 +131,12 @@ bool connect_success(bool status, queue<string> &q) {
             }
         }
         else if (q.empty()) {
-            cout << "error with connector \"&\"" << endl;
+            cout << "Syntax error: incorrect usage of \"&&\"" << endl;
             return false;
         }
         else {
-             cout << "&" << q.front() << " is not a connector!" << endl;
-             return false;
+            cout << "Syntax error: incorrect usage of \"&&\"" << endl;
+            return false;
         }
     }
     else if (!q.empty() && q.front() == "|") {
@@ -151,11 +152,11 @@ bool connect_success(bool status, queue<string> &q) {
             }
         }
         else if (q.empty()) {
-            cout << "error with connector \"|\"" << endl;
+            cout << "Syntax error: incorrect usage of \"||\"" << endl;
             return false;
         }
         else {
-            cout << "|" << q.front() << " is not a connector!" << endl;
+            cout << "Syntax error: incorrect usage of \"||\"" << endl;
             return false;
         }
     }
@@ -163,14 +164,15 @@ bool connect_success(bool status, queue<string> &q) {
         q.pop();
         return true;
     }
+    else if (!q.empty() && q.front() == "#") {
+        return false;
+    }
     else if (!q.empty())  {
-        cout << q.front() <<  " is not a connector!" << endl;
+        cout << "Syntax error: " << q.front() <<  " is not a valid connector!" << endl;
         return false;
     }
     else {
-        cout << "queue size: " << q.size() << endl;
-        print_queue(q);
-        cout << "something MIGHT be wrong!" << endl;
+        cout << "done" << endl;
         return false;
     }
 }
@@ -186,9 +188,12 @@ int main(int argc, char* argv[]) {
         while (!list.empty()) {
             qinfo(list); // debugger
             bool exec_success = false;
+            if (list.front() == "#") {
+                break;
+            }
             parse_connectors(cmd, list);
             if (cmd.size() == 0) {
-                cout << "ERROR!" << endl;
+                cout << "Syntax error: formatting issue in command" << endl;
                 break;
             }
             else if (cmd_exit(cmd)) {
