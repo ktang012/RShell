@@ -2,11 +2,9 @@
 #include <cstring>
 #include <iostream>
 #include <vector>
-#include <string.h>
 #include <unistd.h>
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
-#include <sys/utsname.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -32,11 +30,17 @@ using namespace boost;
 
 // prints user and machine info
 void pcmd_prompt() {
-    string login(getlogin());
-    struct utsname hostname;
-    uname(&hostname);
-    string nodeName(hostname.nodename);
-    cout << login << "@" << nodeName << "$ ";
+    string login;
+    login = getlogin();
+    if (login.empty()) {
+        perror("GETLOGIN");
+    }
+    char host_arr[1024];
+    host_arr[1023] = '\0';
+    if (gethostname(host_arr, 1023) == -1) {
+        perror("GETHOSTNAME");
+    }
+    cout << login << "@" << host_arr << "$ ";
 }
 
 // parses input into queue for execution
@@ -62,7 +66,7 @@ void print_queue (queue<string> q) {
 }
 
 // for testing purposes
-void qinfo(queue<string> q) {
+void qinfo(queue<string> &q) {
     cout << "Size: " << q.size() << endl;
     print_queue(q);
 }
@@ -123,7 +127,6 @@ bool connect_success(bool status, queue<string> &q) {
         if (!q.empty() && q.front() == "&") {
             q.pop();
             if (!status) {
-                cout << "prev cmd fail - ending" << endl;
                 return false;
             }
             else {
@@ -144,7 +147,6 @@ bool connect_success(bool status, queue<string> &q) {
         if (!q.empty() && q.front() == "|") {
             q.pop();
             if (status) {
-                cout << "prev cmd success - ending" << endl;
                 return false;
             }
             else {
@@ -172,12 +174,12 @@ bool connect_success(bool status, queue<string> &q) {
         return false;
     }
     else {
-        cout << "done" << endl;
+        // cout << "done" << endl;
         return false;
     }
 }
 
-int main(int argc, char* argv[]) {
+int main(){
     while (1) {
         string cmd_input;
         queue<string> list;
@@ -186,7 +188,7 @@ int main(int argc, char* argv[]) {
         parse_into_queue(list, cmd_input);
         vector<string> cmd;
         while (!list.empty()) {
-            qinfo(list); // debugger
+            // qinfo(list); // debugger
             bool exec_success = false;
             if (list.front() == "#") {
                 break;
