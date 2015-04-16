@@ -10,22 +10,33 @@ RShell supports only basic bash commands and connectors.
 
 ### Commands and Flags
 
-RShell executes in the form of: `command flags` and the optional `logical connector` following said command. 
+RShell reads in commands in the format: `command` `flags` `logical connector`
 
-### Logical Operators
+RShell will always first take in a `command` followed by `flags` if applicable.
 
-RShell uses the following logic operators: `&&`, `||`, and `;` to connect the execution of commands.
+`exit` will exit the shell if executed as a command. It is NOT case sensitive.
 
-`&&` will execute the command following it if and only if the previous command executed successfully.
+### Logical Connectors
 
-`||` will execute the command following it if and only if the previous command fails to execute properly.
+RShell uses the following logic connector: `&&`, `||`, and `;` to connect the execution of commands in a logical fashion.
+ 
+`&&` will execute the next command, if and only if the previous command executes.
 
-`;` will execute the command following it regardless of the state of the previous command.
+`||` will execute the next command, if and only if the previous command fails to execute.
 
-Everything after `#` will be ignored even if it is of a word.
+`;` will always execute the next command.
 
-## Bugs and Issues
+Everything after `#` will be ignored and treated as a comment.
 
-To be updated.
+## Known Bugs and Issues
+
+- Everything after `#` will be treated as a comment regardless of its integrity in the command.
+- The use of `echo` will echo everything following it until `&`, `|`, `;`, or `#` is reached.
+- Any `"` will be included in the echo.
+- Treats multiple whitespaces as one.
+- Logical connectors without a preceding command will fail.
+- Logical connectors without a following command will be ignored.
+- Able to run multiple instances of RShell in itself.
+- 
 
 
