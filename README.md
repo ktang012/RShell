@@ -18,12 +18,12 @@ RShell will always first take in a `command` followed by `flags` if applicable.
 ### Logical Connectors
 
 RShell uses the following logic connector: `&&`, `||`, and `;` to connect the execution of commands in a logical fashion.
- 
-`&&` will execute the next command, if and only if the previous command executes.
 
-`||` will execute the next command, if and only if the previous command fails to execute.
+- `&&` will execute the next command, if the previous command executes.
 
-`;` will always execute the next command.
+- `||` will execute the next command, if the previous command fails to execute.
+
+- `;` will always execute the next command.
 
 Everything after `#` will be ignored and treated as a comment. Logical connectors without a preceding command will fail. Logical connectors without a following command will be ignored.
 
@@ -33,5 +33,4 @@ Everything after `#` will be ignored and treated as a comment. Logical connector
 - The use of `echo` will echo everything following it until a `&`, `|`, `;`, or `#` is reached.
 - Any `"` will be included in the echo.
 - Able to run multiple instances of RShell in itself.
-
-
+- Needs to be tested using script inside of shell

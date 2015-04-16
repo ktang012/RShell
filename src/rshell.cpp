@@ -7,6 +7,7 @@
 #include <boost/algorithm/string.hpp>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <pwd.h>
 
 using namespace std;
 using namespace boost;
@@ -30,17 +31,18 @@ using namespace boost;
 
 // prints user and machine info
 void pcmd_prompt() {
-    string login;
-    login = getlogin();
-    if (login.empty()) {
-        perror("GETLOGIN");
+    uid_t id = 0;
+    struct passwd *user;
+    user = getpwuid(getuid());
+    if (user->pw_name == NULL) {
+        perror("GETPWUID");
     }
     char host_arr[1024];
     host_arr[1023] = '\0';
     if (gethostname(host_arr, 1023) == -1) {
         perror("GETHOSTNAME");
     }
-    cout << login << "@" << host_arr << "$ ";
+    cout << user->pw_name << "@" << host_arr << "$ ";
 }
 
 // parses input into queue for execution
