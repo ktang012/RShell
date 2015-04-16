@@ -37,6 +37,5 @@ Everything after `#` will be ignored and treated as a comment.
 - Logical connectors without a preceding command will fail.
 - Logical connectors without a following command will be ignored.
 - Able to run multiple instances of RShell in itself.
-- 
 
 
