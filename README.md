@@ -26,16 +26,13 @@ RShell uses the following logic connector: `&&`, `||`, and `;` to connect the ex
 
 `;` will always execute the next command.
 
-Everything after `#` will be ignored and treated as a comment.
+Everything after `#` will be ignored and treated as a comment. Logical connectors without a preceding command will fail. Logical connectors without a following command will be ignored.
 
 ## Known Bugs and Issues
 
 - Everything after `#` will be treated as a comment regardless of its integrity in the command.
-- The use of `echo` will echo everything following it until `&`, `|`, `;`, or `#` is reached.
+- The use of `echo` will echo everything following it until a `&`, `|`, `;`, or `#` is reached.
 - Any `"` will be included in the echo.
-- Treats multiple whitespaces as one.
-- Logical connectors without a preceding command will fail.
-- Logical connectors without a following command will be ignored.
 - Able to run multiple instances of RShell in itself.
 
 
