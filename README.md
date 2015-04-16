@@ -1,8 +1,7 @@
 # RShell
 
-RShell is a simple shell program written by CS100 students. It should take in a bash command, or
-several commands, and execute the command(s) and flag(s), if any, accordingly. Basic connectors will be used to link them
-together.
+RShell is a simple shell program written by CS100 students. It should take in bash commands
+and execute them accordingly. Basic connectors will be used to link commands together.
 
 ## Basic Usage
 
