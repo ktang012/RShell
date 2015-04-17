@@ -33,4 +33,5 @@ Everything after `#` will be ignored and treated as a comment. Logical connector
 - The use of `echo` will echo everything following it until a `&`, `|`, `;`, or `#` is reached.
 - Any `"` will be included in the echo.
 - Able to run multiple instances of RShell in itself.
-- Needs to be tested using script inside of shell
+- Tabs are not treated as spaces and instead are treated as words.
+- Running `script` leads to undefined behavior.

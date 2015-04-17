@@ -12,26 +12,7 @@
 using namespace std;
 using namespace boost;
 
-// Cases to test:
-// cd Desktop&&ls -a
-// cd Desktop&[ENTER] ls -a
-// cd Desktop;ls -a
-// cd Desktop;ls
-// ls;ls;ls;ls
-// cd Desktop & ls -a
-// cd Desktop;
-// ls;
-// cd Desktop||ls -a;vim touch.cpp&&[ENTER] ls -a
-// cd Desktop
-// ; clear
-// && ls
-// || ls -a
-// NOTE: cd will NOT be tested or used!
-// Re-read specs if unsure!!
-
-// prints user and machine info
 void pcmd_prompt() {
-    uid_t id = 0;
     struct passwd *user;
     user = getpwuid(getuid());
     if (user->pw_name == NULL) {
@@ -45,7 +26,6 @@ void pcmd_prompt() {
     cout << user->pw_name << "@" << host_arr << "$ ";
 }
 
-// parses input into queue for execution
 void parse_into_queue(queue<string> &l, const string &s) {
     char_separator<char> delim(" ", ";&|#") ;
     tokenizer<char_separator<char>> mytok(s, delim);
@@ -55,7 +35,6 @@ void parse_into_queue(queue<string> &l, const string &s) {
     }
 }
 
-// for testing purposes
 void print_queue (queue<string> q) {
     if (q.empty()) {
         return;
@@ -67,13 +46,11 @@ void print_queue (queue<string> q) {
     cout << endl;
 }
 
-// for testing purposes
 void qinfo(queue<string> &q) {
     cout << "Size: " << q.size() << endl;
     print_queue(q);
 }
 
-// reinitializes v with q until connector
 void parse_connectors(vector<string> &v, queue<string> &q) {
     while (!q.empty() && q.front() != "&" && q.front() != "|" && q.front() != ";" && q.front() != "#")
     {
@@ -90,12 +67,11 @@ bool cmd_exit(vector<string> &v) {
 }
 
 void to_arr_cstring(vector<string> &s, vector<char*> &cs) {
-    for (auto i = 0; i != s.size(); ++i) {
+    for (unsigned i = 0; i != s.size(); ++i) {
         cs[i] = &s[i][0];
     }
 }
 
-// exec cmd and if success
 bool begin_exec(vector<char*> &cs) {
     int status;
     int pid = fork();
@@ -104,7 +80,6 @@ bool begin_exec(vector<char*> &cs) {
         _exit(-1);
     }
     else if (pid == 0) { // child
-        cout << "child process" << endl;
         if (-1 == execvp(cs[0], cs.data())) {
             perror("EXEC");
             _exit(-1);
@@ -122,7 +97,6 @@ bool begin_exec(vector<char*> &cs) {
     return true;
 }
 
-// checks connector logic
 bool connect_success(bool status, queue<string> &q) {
     if (!q.empty() && q.front() == "&") {
         q.pop();
@@ -176,7 +150,6 @@ bool connect_success(bool status, queue<string> &q) {
         return false;
     }
     else {
-        // cout << "done" << endl;
         return false;
     }
 }
@@ -201,7 +174,6 @@ int main(){
                 break;
             }
             else if (cmd_exit(cmd)) {
-                cout << "Exiting RShell" << endl;
                 return 0;
             }
             else {
