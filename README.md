@@ -30,8 +30,8 @@ Everything after `#` will be ignored and treated as a comment. Logical connector
 ## Known Bugs and Issues
 
 - Everything after `#` will be treated as a comment regardless of its integrity in the command.
+- `&` and `|` are treated as improper use of connectors if used without its complement.
 - The use of `echo` will echo everything following it until a `&`, `|`, `;`, or `#` is reached.
-- Any `"` will be included in the echo.
+- Any `"` or `'` will be included in the echo.
 - Able to run multiple instances of RShell in itself.
-- Tabs are not treated as spaces and instead are treated as words.
-- Running `script` leads to undefined behavior.
+- Tabs are not treated as spaces and instead are treated as a character.
