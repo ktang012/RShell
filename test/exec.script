@@ -1,0 +1,279 @@
+Script started on Thu 16 Apr 2015 07:54:04 PM PDT
+]0;kevin@kevin-Satellite-P55-A: ~/Desktop/CS100/rshellkevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ make
+mkdir -p ./bin
+g++ -Wall -Werror -std=c++11 -pedantic ./src/rshell.cpp -o ./bin/rshell
+]0;kevin@kevin-Satellite-P55-A: ~/Desktop/CS100/rshellkevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ bin/rshell
+kevin@kevin-Satellite-P55-A$ ls # basic command
+bin  LICENSE  Makefile	README.md  src	test
+kevin@kevin-Satellite-P55-A$ ls -  a # basic command with flag
+.  ..  bin  .git  LICENSE  Makefile  README.md	src  test
+kevin@kevin-Satellite-P55-A$ 	ls -a # [TAB    using t tab before          TAB before a command
+EXEC: No such file or directory
+kevin@kevin-Satellite-P55-A$ ls -a 	  a	 	# using TAB after a command and flag (spaces  separates -a  '-a' from TAB
+ls: cannot access 	: No such file or directory
+kevin@kevin-Satellite-P55-A$ ls -a	# using TAB after a command and flag wit   (without space sp epa                  '-a[TAB]')
+ls: invalid option -- '	'
+Try 'ls --help' for more information.
+kevin@kevin-Satellite-P55-A$ ls                   -a #a bunch        a bunch of spaces
+.  ..  bin  .git  LICENSE  Makefile  README.md	src  test
+kevin@kevin-Satellite-P55-A$ echo hi#hi    ello world ls -a #         # basic echo use
+hello world
+kevin@kevin-Satellite-P55-A$ echo hell world      o world ls -a # basic echo use --                 treats 'ls -a' as echo       flags rather than cm ommand fo    of its own
+hello world ls -a
+kevin@kevin-Satellite-P55-A$ echo hi#########hello world # everything after '#' is ignored!        treated as ac    comment!
+hi
+kevin@kevin-Satellite-P55-A$ ls # -a # everything after '#' is dropped
+bin  LICENSE  Makefile	README.md  src	test
+kevin@kevin-Satellite-P55-A$ script scrip     inside_rshell.script
+Script started, file is inside_rshell.script
+]0;kevin@kevin-Satellite-P55-A: ~/Desktop/CS100/rshellkevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ exit # exiting from script started in Rsh[K[KShell
+exit
+Script done, file is inside_rshell.script
+kevin@kevin-Satellite-P55-A$ ls -a # looking at directory after 'scrit      running 'script'
+.  ..  bin  .git  inside_rshell.script	LICENSE  Makefile  README.md  src  test
+kevin@kevin-Satellite-P55-A$ rm -rf   inside_rshell.script # basic deletion of file
+kevin@kevin-Satellite-P55-A$ ls -a # checking directory again
+.  ..  bin  .git  LICENSE  Makefile  README.md	src  test
+kevin@kevin-Satellite-P55-A$ ls  ;ls;ls;s         ; ls # basic     testing ';'
+bin  LICENSE  Makefile	README.md  src	test
+bin  LICENSE  Makefile	README.md  src	test
+kevin@kevin-Satellite-P55-A$ ls;ls;ls;ls;echo hiworld      world ls ls ls hi world;ls;ls # testing   ';' again     for larger     onger cases
+bin  LICENSE  Makefile	README.md  src	test
+bin  LICENSE  Makefile	README.md  src	test
+bin  LICENSE  Makefile	README.md  src	test
+bin  LICENSE  Makefile	README.md  src	test
+hi world ls ls ls hi world
+bin  LICENSE  Makefile	README.md  src	test
+bin  LICENSE  Makefile	README.md  src	test
+kevin@kevin-Satellite-P55-A$ echo hi world this is a supe  r long ec     ooooooooooooooooooooooooooooooooooooooooong echoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TEST # super long echo test case
+hi world this is a super loooooooooooooooooooooooooooooooooooooooooong echoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TEST
+kevin@kevin-Satellite-P55-A$ ls -aaaaaaaaaaaaaaaaaaa # bad flag
+.  ..  bin  .git  LICENSE  Makefile  README.md	src  test
+kevin@kevin-Satellite-P55-A$ asdf junk command # bad command
+EXEC: No such file or directory
+kevin@kevin-Satellite-P55-A$ ps -a # testing ps -a     'ps -a'
+  PID TTY          TIME CMD
+ 2012 pts/1    00:26:36 chrome
+ 2019 pts/1    00:00:00 cat
+ 2020 pts/1    00:00:00 cat
+ 2026 pts/1    00:00:00 chrome-sandbox
+ 2031 pts/1    00:00:00 chrome-sandbox
+ 2055 pts/1    00:03:28 chrome
+ 2058 pts/1    00:00:00 chrome
+ 7273 pts/5    00:00:00 script
+ 7274 pts/5    00:00:00 script
+ 7294 pts/7    00:00:00 rshell
+ 7345 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A$ ps # testing 's [s'   ps'
+  PID TTY          TIME CMD
+ 7275 pts/7    00:00:00 bash
+ 7294 pts/7    00:00:00 rshell
+ 7346 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A$ ig  git branch # testing 'git branch'
+* [32mexec[m
+  master[m
+kevin@kevin-Satellite-P55-A$ ls -  ;	# # testing ls;[TAB]
+bin  LICENSE  Makefile	README.md  src	test
+EXEC: No such file or directory
+kevin@kevin-Satellite-P55-A$ ls		  ls	-a # testing ls[TAB]-a
+EXEC: No such file or directory
+kevin@kevin-Satellite-P55-A$ ls -a&&&    && echo ls -a worked!! # basic       testing ' basic '&&' use
+.  ..  bin  .git  LICENSE  Makefile  README.md	src  test
+ls -a worked!!
+kevin@kevin-Satellite-P55-A$ ls -a  ;echo hell o  o world&&echo hel   echo hello world worked!! # testing ';' and '&&'
+.  ..  bin  .git  LICENSE  Makefile  README.md	src  test
+hello world
+echo hello world worked!!
+kevin@kevin-Satellite-P55-A$ echo this is working && this      ecgo  ho this is also working && true && echo true worked && this will         junk command       && this fails # testing longer use of '&' &'
+this is working
+this is also working
+true worked
+EXEC: No such file or directory
+kevin@kevin-Satellite-P55-A$ e echo    echo hell worl     o world && # ls -a # eve   testing '&&' and '#'
+hello world
+kevin@kevin-Satellite-P55-A$ echo w hello world && # testing '&&' without supplying following command
+hello world
+kevin@kevin-Satellite-P55-A$ && t echo e hello wolrd   rld ##    testing '&&' without preceding command
+Syntax error: formatting issue in command
+kevin@kevin-Satellite-P55-A$ w echo HELLO WORLD ##  &&	# testing '&&'               &	# testing '&&[TaB  AB' ]'
+HELLO WORLD
+EXEC: No such file or directory
+kevin@kevin-Satellite-P55-A$ echo HELLO WOLR  RLD &&junkjunkjunk # testing another '&&" ' case
+HELLO WORLD
+EXEC: No such file or directory
+kevin@kevin-Satellite-P55-A$ true&&false&&echo HELLO WOL RLD # testing more '&&'
+kevin@kevin-Satellite-P55-A$ echo HELLOWORLD  &&;   ;&& ls -a
+HELLOWORLD
+Syntax error: formatting issue in command
+kevin@kevin-Satellite-P55-A$ echo HELLOWORLD&&; ls -a ##  testing another       ';&&' and '&&;'
+HELLOWORLD
+Syntax error: formatting issue in command
+kevin@kevin-Satellite-P55-A$ make # test' mak      'make'
+mkdir -p ./bin
+g++ -Wall -Werror -std=c++11 -pedantic ./src/rshell.cpp -o ./bin/rshell
+kevin@kevin-Satellite-P55-A$ bin/rshell # running another instance of RShell
+kevin@kevin-Satellite-P55-A$ exit # exitting     anecho iot           ting   ing second RShell
+kevin@kevin-Satellite-P55-A$ clear   # testing 'clear'
+[H[2Jkevin@kevin-Satellite-P55-A$ ls -a || echo ls -a didn't work!! # testing basic '||' use age
+.  ..  bin  .git  LICENSE  Makefile  README.md	src  test
+kevin@kevin-Satellite-P55-A$ t cd src # testing 'cd' - should fail
+EXEC: No such file or directory
+kevin@kevin-Satellite-P55-A$ cd src || ls -a # testing basic '||' usage
+EXEC: No such file or directory
+.  ..  bin  .git  LICENSE  Makefile  README.md	src  test
+kevin@kevin-Satellite-P55-A$ cal # testing 'ca; l'
+     April 2015       
+Su Mo Tu We Th Fr Sa  
+          1  2  3  4  
+ 5  6  7  8  9 10 11  
+12 13 14 15 [7m16[27m 17 18  
+19 20 21 22 23 24 25  
+26 27 28 29 30        
+                      
+kevin@kevin-Satellite-P55-A$ l ls -a||       false||true&&false||true;false;true;false;true;echo HELLO WORLD; ||echo prev    BYE WORLD # testing longer logi             multiple cases of connectors
+HELLO WORLD
+kevin@kevin-Satellite-P55-A$ echo HELLO WORLD||  &&junk command||echo junk command didn't work; &&ls -a; cal&&echo BYE WORLD         "W B BYE WORLD" # testing mul  ore cases of connectors -- alsp o use of " '"' in echo
+HELLO WORLD
+EXEC: No such file or directory
+junk command didn't work
+.  ..  bin  .git  LICENSE  Makefile  README.md	src  test
+     April 2015       
+Su Mo Tu We Th Fr Sa  
+          1  2  3  4  
+ 5  6  7  8  9 10 11  
+12 13 14 15 [7m16[27m 17 18  
+19 20 21 22 23 24 25  
+26 27 28 29 30        
+                      
+"BYE WORLD"
+kevin@kevin-Satellite-P55-A$ echo hello     'hello world		 	 		bye world' ||    && echo "HELLO WORLD                                    BYE WORLD"||vi  rm  vim   vim   vim somefile.cpp # testing 'hello world  [TAB][TAB]' and       and HELLO WORL          "HELLO WOLRD     -- space -- WORLD"
+'hello world		bye world'
+"HELLO WORLD BYE WORLD"
+kevin@kevin-Satellite-P55-A$ vim somefile1.cp    cpp   .cpp # testing vi  'vim'
+[?1049h[?1h=[2;1H▽[6n[1;1H  [1;1H[1;58r[?12;25h[?12l[?25h[27m[m[37m[H[2J[?25l[58;1H"somefile.cpp" [New File][>c[1;1H[33m  1 [m[37m
+[1m[34m~                                                                                                                                                                                                                   [3;1H~                                                                                                                                                                                                                   [4;1H~                                                                                                                                                                                                                   [5;1H~                                                                                                                                                                                                                   [6;1H~                                                                                                                                                                                                                   [7;1H~                                                                                                                                                                                                                   [8;1H~                                                                                                                                                                                                                   [9;1H~                                                                                                                                                                                                                   [10;1H~                                                                                                                                                                                                                   [11;1H~                                                                                                                                                                                                                   [12;1H~                                                                                                                                                                                                                   [13;1H~                                                                                                                                                                                                                   [14;1H~                                                                                                                                                                                                                   [15;1H~                                                                                                                                                                                                                   [16;1H~                                                                                                                                                                                                                   [17;1H~                                                                                                                                                                                                                   [18;1H~                                                                                                                                                                                                                   [19;1H~                                                                                                                                                                                                                   [20;1H~                                                                                                                                                                                                                   [21;1H~                                                                                                                                                                                                                   [22;1H~                                                                                                                                                                                                                   [23;1H~                                                                                                                                                                                                                   [24;1H~                                                                                                                                                                                                                   [25;1H~                                                                                                                                                                                                                   [26;1H~                                                                                                                                                                                                                   [27;1H~                                                                                                                                                                                                                   [28;1H~                                                                                                                                                                                                                   [29;1H~                                                                                                                                                                                                                   [30;1H~                                                                                                                                                                                                                   [31;1H~                                                                                                                                                                                                                   [32;1H~                                                                                                                                                                                                                   [33;1H~                                                                                                                                                                                                                   [34;1H~                                                                                                                                                                                                                   [35;1H~                                                                                                                                                                                                                   [36;1H~                                                                                                                                                                                                                   [37;1H~                                                                                                                                                                                                                   [38;1H~                                                                                                                                                                                                                   [39;1H~                                                                                                                                                                                                                   [40;1H~                                                                                                                                                                                                                   [41;1H~                                                                                                                                                                                                                   [42;1H~                                                                                                                                                                                                                   [43;1H~                                                                                                                                                                                                                   [44;1H~                                                                                                                                                                                                                   [45;1H~                                                                                                                                                                                                                   [46;1H~                                                                                                                                                                                                                   [47;1H~                                                                                                                                                                                                                   [48;1H~                                                                                                                                                                                                                   [49;1H~                                                                                                                                                                                                                   [50;1H~                                                                                                                                                                                                                   [51;1H~                                                                                                                                                                                                                   [52;1H~                                                                                                                                                                                                                   [53;1H~                                                                                                                                                                                                                   [54;1H~                                                                                                                                                                                                                   [55;1H~                                                                                                                                                                                                                   [56;1H~                                                                                                                                                                                                                   [57;1H~                                                                                                                                                                                                                   [m[37m[58;195H0,0-1[9CAll]2;somefile.cpp (~/Desktop/CS100/rshell) - VIM]1;somefile.cpp[1;5H[?12l[?25hP+q436f\P+q6b75\P+q6b64\P+q6b72\P+q6b6c\P+q2332\P+q2334\P+q2569\P+q2a37\P+q6b31\[?25l[58;1H[K[58;1H:]2;[Command Line] (~/Desktop/CS100/rshell) - VIM]1;[Command Line][49;1H[7msomefile.cpp                                                                                                                                                                                      0,0-1          All[m[37m[50;1H[1m[34m:[m[37m[33m 14 [m[37m[38;5;36m'<[m[37m,[38;5;36m'>[m[37m[92ms[m[37m[35m/[m[37mexec_success/status[50;32H[K[51;1H[1m[34m:[m[37m[33m 15 [m[37mQ[51;7H[K[52;1H[1m[34m:[m[37m[33m 16 [m[37m[92mw[m[37m[52;7H[K[53;1H[1m[34m:[m[37m[33m 17 [m[37m[92mq[m[37m[53;7H[K[54;1H[1m[34m:[m[37m[33m 18 [m[37m[92mq[m[37m![54;8H[K[55;1H[1m[34m:[m[37m[33m 19 [m[37m[92mwq[m[37m[55;8H[K[56;1H[1m[34m:[m[37m[33m 20 [m[37m[56;6H[K[57;1H[1m[7m[Command Line]                                                                                                                                                                                    20,0-1         Bot[56;6H[?12l[?25h]2;somefile.cpp (~/Desktop/CS100/rshell) - VIM]1;somefile.cpp
+
+[?25l[m[37m[49;1H[1m[34m~                                                                                                                                                                                                                   [50;1H~                                                                                                                                                                                                                   [51;1H~                                                                                                                                                                                                                   [52;1H~                                                                                                                                                                                                                   [53;1H~                                                                                                                                                                                                                   [54;1H~                                                                                                                                                                                                                   [55;1H~                                                                                                                                                                                                                   [56;1H~                                                                                                                                                                                                                   [57;1H~                                                                                                                                                                                                                   [m[37m[58;195H0,0-1[9CAll[1;5H[?12l[?25h[?25l[58;1H[K[58;1H:[?12l[?25hq[?25l[?12l[?25h[?25l[58;2H[K[58;2H[?12l[?25hq[?25l[?12l[?25h[?25l]2;kevin@kevin-Satellite-P55-A: ~/Desktop/CS100/rshell]1;kevin@kevin-Satellite-P55-A: ~/Desktop/CS100/rshell[58;1H[K[58;1H[?1l>[?12l[?25h[?1049lkevin@kevin-Satellite-P55-A$ # ls -a # testing # as      '#'
+kevin@kevin-Satellite-P55-A$ echo ## HELLO WORLD # t testing '#' in echo
+
+kevin@kevin-Satellite-P55-A$ pstree
+init─┬─ModemManager───2*[{ModemManager}]
+     ├─NetworkManager─┬─2*[dhclient]
+     │                ├─dnsmasq
+     │                └─3*[{NetworkManager}]
+     ├─accounts-daemon───2*[{accounts-daemon}]
+     ├─acpid
+     ├─at-spi-bus-laun───2*[{at-spi-bus-laun}]
+     ├─avahi-daemon───avahi-daemon
+     ├─bluetoothd
+     ├─colord───2*[{colord}]
+     ├─cron
+     ├─cups-browsed
+     ├─cupsd
+     ├─2*[dbus-daemon]
+     ├─dbus-launch
+     ├─gconfd-2
+     ├─6*[getty]
+     ├─gnome-keyring-d
+     ├─gvfsd───{gvfsd}
+     ├─gvfsd-fuse───4*[{gvfsd-fuse}]
+     ├─ibus-daemon─┬─ibus-dconf───3*[{ibus-dconf}]
+     │             ├─ibus-engine-sim───2*[{ibus-engine-sim}]
+     │             ├─ibus-ui-gtk3───3*[{ibus-ui-gtk3}]
+     │             └─2*[{ibus-daemon}]
+     ├─ibus-x11───3*[{ibus-x11}]
+     ├─irqbalance
+     ├─kerneloops
+     ├─lightdm─┬─Xorg───2*[{Xorg}]
+     │         ├─lightdm─┬─xmonad-x86_64-l─┬─sh───gnome-terminal─┬─bash───chrome─┬─2*[cat]
+     │         │         │                 │                     │               ├─chrome─┬─chrome
+     │         │         │                 │                     │               │        └─2*[{chrome}]
+     │         │         │                 │                     │               ├─chrome-sandbox───chrome─┬─chrome─┬─2*[chrome───5*[{chrome}]]
+     │         │         │                 │                     │               │                         │        ├─3*[chrome───7*[{chrome}]]
+     │         │         │                 │                     │               │                         │        ├─5*[chrome───8*[{chrome}]]
+     │         │         │                 │                     │               │                         │        ├─chrome───12*[{chrome}]
+     │         │         │                 │                     │               │                         │        ├─chrome───24*[{chrome}]
+     │         │         │                 │                     │               │                         │        ├─3*[chrome───10*[{chrome}]]
+     │         │         │                 │                     │               │                         │        └─chrome───9*[{chrome}]
+     │         │         │                 │                     │               │                         └─chrome-sandbox───nacl_helper
+     │         │         │                 │                     │               └─42*[{chrome}]
+     │         │         │                 │                     ├─bash───script───script───bash───rshell───pstree
+     │         │         │                 │                     ├─bash
+     │         │         │                 │                     ├─gnome-pty-helpe
+     │         │         │                 │                     └─3*[{gnome-terminal}]
+     │         │         │                 └─ssh-agent
+     │         │         └─{lightdm}
+     │         └─2*[{lightdm}]
+     ├─polkitd───2*[{polkitd}]
+     ├─pulseaudio───2*[{pulseaudio}]
+     ├─rsyslogd───3*[{rsyslogd}]
+     ├─rtkit-daemon───2*[{rtkit-daemon}]
+     ├─systemd-logind
+     ├─systemd-udevd
+     ├─udisksd───4*[{udisksd}]
+     ├─unity-webapps-s───2*[{unity-webapps-s}]
+     ├─upowerd───2*[{upowerd}]
+     ├─upstart-file-br
+     ├─upstart-socket-
+     ├─upstart-udev-br
+     ├─whoopsie───2*[{whoopsie}]
+     └─wpa_supplicant
+kevin@kevin-Satellite-P55-A$ exit # testing 'exit'                     echo exit exit exit;echo e trying to exit # testing 'exit' in echo
+exit exit exit
+trying to exit
+kevin@kevin-Satellite-P55-A$ cal junk gar   food mouse test||ls -a&&cal;echo HELLO WORLD # testing            ;l cl  ps||echo GOODBYE WORLD # testing more case    logical connectors
+Usage: cal [general options] [-hjy] [[month] year]
+       cal [general options] [-hj] [-m month] [year]
+       ncal [general options] [-bhJjpwySM] [-s country_code] [[month] year]
+       ncal [general options] [-bhJeoSM] [year]
+General options: [-NC31] [-A months] [-B months]
+For debug the highlighting: [-H yyyy-mm-dd] [-d yyyy-mm]
+.  ..  bin  .git  LICENSE  Makefile  README.md	src  test
+     April 2015       
+Su Mo Tu We Th Fr Sa  
+          1  2  3  4  
+ 5  6  7  8  9 10 11  
+12 13 14 15 [7m16[27m 17 18  
+19 20 21 22 23 24 25  
+26 27 28 29 30        
+                      
+HELLO WORLD
+  PID TTY          TIME CMD
+ 7275 pts/7    00:00:00 bash
+ 7294 pts/7    00:00:00 rshell
+ 7807 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A$ bin/    bin/rshell # t testing       running another instance of rshell
+kevin@kevin-Satellite-P55-A$ ps # checking 'ps'
+  PID TTY          TIME CMD
+ 7275 pts/7    00:00:00 bash
+ 7294 pts/7    00:00:00 rshell
+ 7809 pts/7    00:00:00 rshell
+ 7816 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A$ kill -9 7809 # killing second rshell
+kevin@kevin-Satellite-P55-A$ ps # checking 'ps'
+  PID TTY          TIME CMD
+ 7275 pts/7    00:00:00 bash
+ 7294 pts/7    00:00:00 rshell
+ 7818 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A$ google-cho rome #                 echo Opening google chrome  ;google-chrome||echo Failed to open google chrome! # testing google chrome
+Opening google chrome
+ATTENTION: default value of option force_s3tc_enable overridden by environment.
+Created new window in existing browser session.
+kevin@kevin-Satellite-P55-A$ ps -a    # t checking 'ps'
+  PID TTY          TIME CMD
+ 7275 pts/7    00:00:00 bash
+ 7294 pts/7    00:00:00 rshell
+ 7892 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A$ touch					#    uch	 	# testing 'touch    ouch [TAB]
+kevin@kevin-Satellite-P55-A$ ls # checking ls
+?  bin	LICENSE  Makefile  README.md  src  test
+kevin@kevin-Satellite-P55-A$ rm ? # deleting file
+rm: cannot remove ‘?’: No such file or directory
+kevin@kevin-Satellite-P55-A$ rm 	# deleting file '[TAB; ]'
+kevin@kevin-Satellite-P55-A$ ls # checking ls
+bin  LICENSE  Makefile	README.md  src	test
+kevin@kevin-Satellite-P55-A$ exit # exiting RShell
+]0;kevin@kevin-Satellite-P55-A: ~/Desktop/CS100/rshellkevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ exit # exiting script
+exit
+
+Script done on Thu 16 Apr 2015 09:05:38 PM PDT
