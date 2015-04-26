@@ -163,7 +163,7 @@ int main(){
         parse_into_queue(list, cmd_input);
         vector<string> cmd;
         while (!list.empty()) {
-            // qinfo(list); // debugger
+            qinfo(list); // debugger
             bool exec_success = false;
             if (list.front() == "#") {
                 break;
