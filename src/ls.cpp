@@ -10,6 +10,8 @@
 #include <queue>
 #include <vector>
 #include <algorithm>
+#include <pwd.h>
+#include <grp.h>
 
 using namespace std;
 
@@ -26,7 +28,7 @@ void filter_argv(int argc, char* argv[], queue<string> &p, vector<string> &f) {
 
 void p_vector (const vector<string> &v) {
     for (unsigned i = 0; i < v.size(); ++i) {
-        cout << v.at(i) << " ";
+        cout << v.at(i) << "  ";
     }
     cout << endl;
 }
@@ -170,23 +172,46 @@ void getperms(mode_t st_mode, string &perms) {
 }
 
 void gettime(struct stat &t, string &s) {
+    // deletes extra info such as weekday, seconds, and years
+    // time format: Mmm dd hh:mm
     s = ctime(&t.st_mtime);
-    s.at(s.size()-1) = ' ';
+    s.erase(0, 4);
+    s.erase(12,8);
+    s.at(s.size()-1) = '\0';
 }
 
-void exec_long(DIR *dirp, vector<string> &files, string &curr_directory) {
+void get_usr_grp (const struct stat &info, string &u, string &g) {
+    struct passwd usr = *getpwuid(info.st_uid);
+    struct group grp = *getgrgid(info.st_gid);
+    if (&usr == NULL) {
+        perror("GETPWUID");
+        exit(1);
+    }
+    if (&grp == NULL) {
+        perror("GETGRGID");
+        exit(1);
+    }
+    u = usr.pw_name;
+    g = grp.gr_name;
+}
+
+void exec_long (vector<string> &files, string &curr_directory) {
     struct stat info;
     for (unsigned i = 0; i < files.size(); ++i) {
-        // cout << "checking: " << files.at(i) << endl;
+        //cout << "checking: " << curr_directory << "/" << files.at(i) << endl;
         if (stat((curr_directory + "/"+ (files.at(i))).c_str(), &info) == -1) {
             perror("STAT");
             exit(1);
         }
         string perms = "----------";
         getperms(info.st_mode, perms);
+        string usr, grp;
+        get_usr_grp(info, usr, grp);
         string time;
         gettime(info, time);
-        cout << perms << " " << time << " " << files.at(i) << endl;
+        // perms - # of folders - user - group - size in bytes - date/time last modified
+        cout << perms << " " << info.st_nlink << " " << usr << " " << grp << " ";
+        cout << info.st_size << " " << time << " " << files.at(i) << endl;
     }
 }
 
@@ -213,7 +238,7 @@ void apply_flags(unsigned flags, queue<string> &paths) {
         sort_vector(files);
 
         if (flag_LONG(flags)) {
-            exec_long(dirp, files, curr_directory);
+            exec_long(files, curr_directory);
         }
         else {
             p_vector(files);
