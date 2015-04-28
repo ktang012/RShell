@@ -13,6 +13,10 @@
 #include <pwd.h>
 #include <grp.h>
 
+#define BOLDED_BLUE "\033[1;34m"
+#define BOLDED_GREEN "\033[1;32m"
+#define CLEAR_COLORS "\033[0m"
+
 using namespace std;
 
 void filter_argv(int argc, char* argv[], queue<string> &p, vector<string> &f) {
@@ -24,13 +28,6 @@ void filter_argv(int argc, char* argv[], queue<string> &p, vector<string> &f) {
             p.push(argv[i]);
         }
     }
-}
-
-void p_vector (const vector<string> &v) {
-    for (unsigned i = 0; i < v.size(); ++i) {
-        cout << v.at(i) << "  ";
-    }
-    cout << endl;
 }
 
 bool case_insensitive(const string &a, const string &b) {
@@ -172,8 +169,7 @@ void getperms(mode_t st_mode, string &perms) {
 }
 
 void gettime(struct stat &t, string &s) {
-    // deletes extra info such as weekday, seconds, and years
-    // time format: Mmm dd hh:mm
+    // deletes weekdays, seconds, years
     s = ctime(&t.st_mtime);
     s.erase(0, 4);
     s.erase(12,8);
@@ -195,10 +191,24 @@ void get_usr_grp (const struct stat &info, string &u, string &g) {
     g = grp.gr_name;
 }
 
-void exec_long (vector<string> &files, string &curr_directory) {
-    struct stat info;
+bool is_dir(mode_t st_mode) {
+    if (S_ISDIR(st_mode)) {
+        return true;
+    }
+    return false;
+}
+
+bool is_exec(mode_t st_mode) {
+    if ((S_IXUSR & st_mode) || (S_IXGRP & st_mode) || (S_IXOTH & st_mode)) {
+        return true;
+    }
+    return false;
+}
+
+void print_long (vector<string> &files, string &curr_directory) {
     for (unsigned i = 0; i < files.size(); ++i) {
         //cout << "checking: " << curr_directory << "/" << files.at(i) << endl;
+        struct stat info;
         if (stat((curr_directory + "/"+ (files.at(i))).c_str(), &info) == -1) {
             perror("STAT");
             exit(1);
@@ -211,11 +221,59 @@ void exec_long (vector<string> &files, string &curr_directory) {
         gettime(info, time);
         // perms - # of folders - user - group - size in bytes - date/time last modified
         cout << perms << " " << info.st_nlink << " " << usr << " " << grp << " ";
-        cout << info.st_size << " " << time << " " << files.at(i) << endl;
+        cout << info.st_size << " " << time << " ";
+        if (is_dir(info.st_mode)) {
+            cout << BOLDED_BLUE << files.at(i) << CLEAR_COLORS << endl;
+        }
+        else if (is_exec(info.st_mode)) {
+            cout << BOLDED_GREEN << files.at(i) << CLEAR_COLORS << endl;
+        }
+        else {
+            cout << files.at(i) << endl;
+        }
     }
 }
 
-void apply_flags(unsigned flags, queue<string> &paths) {
+void print_short (vector<string> &files, string &curr_directory) {
+    for (unsigned i = 0; i < files.size(); ++i) {
+        //cout << "checking: " << curr_directory << "/" << files.at(i) << endl;
+        struct stat info;
+        if (stat((curr_directory + "/" + (files.at(i))).c_str(), &info) == -1) {
+            perror("STAT");
+            exit(1);
+        }
+
+        if (is_dir(info.st_mode)) {
+            cout << "\033[1;34m" << files.at(i) << "\033[0m" << " ";
+        }
+        else if (is_exec(info.st_mode)) {
+            cout << "\033[1;32m" << files.at(i) << "\033[0m" << " ";
+        }
+        else {
+            cout << files.at(i) << " ";
+        }
+    }
+    cout << endl;
+}
+
+void get_directories(string &curr_directory, queue<string> &p, vector<string> &files) {
+    for (unsigned i = 0; (!p.empty()) && i < files.size(); ++i) {
+        struct stat info;
+        if (stat((curr_directory + "/" + (files.at(i))).c_str(), &info) == -1) {
+            perror("STAT");
+            exit(1);
+        }
+        if (is_dir(info.st_mode)) {
+            p.push(curr_directory + "/" + files.at(i));
+        }
+    }
+}
+
+void print_dir_name(string &dir) {
+    cout << dir << ":" << endl;
+}
+
+void exec_flags(unsigned flags, queue<string> &paths) {
     while (!paths.empty()) {
         DIR *dirp;
         vector<string> files;
@@ -225,8 +283,7 @@ void apply_flags(unsigned flags, queue<string> &paths) {
         }
 
         string curr_directory = paths.front();
-        // cout << "GOING TO DIRECTORY: " << paths.front() << endl;
-        paths.pop();
+        // cout << "GOING TO DIRECTORY: " << curr_directory << endl;
 
         if (flag_ALL(flags)) {
            push_all_to_files(dirp, files);
@@ -238,15 +295,22 @@ void apply_flags(unsigned flags, queue<string> &paths) {
         sort_vector(files);
 
         if (flag_LONG(flags)) {
-            exec_long(files, curr_directory);
+            if (flag_RECURSIVE(flags)) {
+                print_dir_name(curr_directory);
+            }
+            print_long(files, curr_directory);
         }
         else {
-            p_vector(files);
+            if (flag_RECURSIVE(flags)) {
+                print_dir_name(curr_directory);
+            }
+            print_short(files, curr_directory);
         }
 
         if (flag_RECURSIVE(flags)) {
-            /* look for directories */
-            /* apply_flags(flags, new paths, new files) */
+            get_directories(curr_directory, paths, files);
+            paths.pop();
+            apply_flags(flags, paths);
         }
     }
 }
@@ -255,12 +319,12 @@ void init_ls(unsigned flags, queue<string> &paths) {
     if (paths.empty()) {
         paths.push(".");
     }
-    apply_flags(flags, paths);
+    exec_flags(flags, paths);
 }
 
 int main(int argc, char* argv[]) {
     if (argc == 0) {
-        cout << "no args" << endl;
+        cout << "Syntax error: need arguments!" << endl;
     }
     else {
         vector<string> flags;
