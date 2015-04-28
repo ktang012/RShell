@@ -31,8 +31,21 @@ void p_vector (const vector<string> &v) {
     cout << endl;
 }
 
+bool case_insensitive(const string &a, const string &b) {
+    for (unsigned i = 0; i < a.length() && i < b.length(); ++i) {
+        if (tolower(a.at(i)) < tolower(b.at(i))) {
+            return true;
+        }
+        else if (tolower(a.at(i)) > tolower(b.at(i))) {
+            return false;
+        }
+    }
+    return (a.length() < b.length());
+}
+
+
 void sort_vector(vector<string> &v) {
-    sort(v.begin(), v.end());
+   stable_sort(v.begin(), v.end(), case_insensitive);
 }
 
 unsigned get_flags(const vector<string> &v) {
@@ -89,6 +102,7 @@ void push_to_files (DIR *dirp, vector<string> &files) {
     errno = 0;
     while ((filespecs = readdir(dirp)) != NULL) {
         if (filespecs->d_name[0] != '.') {
+            // cout << "PUSHING: " << filespecs->d_name << endl;
             files.push_back(filespecs->d_name);
         }
     }
@@ -106,6 +120,7 @@ void push_all_to_files (DIR *dirp, vector<string> &files) {
     struct dirent *filespecs;
     errno = 0;
     while ((filespecs = readdir(dirp)) != NULL) {
+        // cout << "PUSHING: " << filespecs->d_name << endl;
         files.push_back(filespecs->d_name);
     }
     if (errno != 0) {
@@ -118,19 +133,74 @@ void push_all_to_files (DIR *dirp, vector<string> &files) {
     }
 }
 
-void exec_long(DIR *dirp, vector<string> &files) {
+void getperms(mode_t st_mode, string &perms) {
+    if (S_ISDIR(st_mode))
+        perms.at(0) = 'd';
+    else if (S_ISCHR(st_mode))
+        perms.at(0) = 'c';
+    else if (S_ISBLK(st_mode))
+        perms.at(0) = 'b';
+    else if (S_ISFIFO(st_mode))
+        perms.at(0) = 'p';
+    else if (S_ISLNK(st_mode))
+        perms.at(0) = 'l';
+    else if (S_ISSOCK(st_mode))
+        perms.at(0) = 's';
 
+    if (S_IRUSR & st_mode)
+        perms.at(1) = 'r';
+    if (S_IWUSR & st_mode)
+        perms.at(2) = 'w';
+    if (S_IXUSR & st_mode)
+        perms.at(3) = 'x';
 
+    if (S_IRGRP & st_mode)
+        perms.at(4) = 'r';
+    if (S_IWGRP & st_mode)
+        perms.at(5) = 'w';
+    if (S_IXGRP & st_mode)
+        perms.at(6) = 'x';
 
+    if (S_IROTH & st_mode)
+        perms.at(7) = 'r';
+    if (S_IWOTH & st_mode)
+        perms.at(8) = 'w';
+    if (S_IXOTH & st_mode)
+        perms.at(9) = 'x';
 }
 
-void apply_flags(unsigned flags, queue<string> &paths, vector<string> &files) {
+void gettime(struct stat &t, string &s) {
+    s = ctime(&t.st_mtime);
+    s.at(s.size()-1) = ' ';
+}
+
+void exec_long(DIR *dirp, vector<string> &files, string &curr_directory) {
+    struct stat info;
+    for (unsigned i = 0; i < files.size(); ++i) {
+        // cout << "checking: " << files.at(i) << endl;
+        if (stat((curr_directory + "/"+ (files.at(i))).c_str(), &info) == -1) {
+            perror("STAT");
+            exit(1);
+        }
+        string perms = "----------";
+        getperms(info.st_mode, perms);
+        string time;
+        gettime(info, time);
+        cout << perms << " " << time << " " << files.at(i) << endl;
+    }
+}
+
+void apply_flags(unsigned flags, queue<string> &paths) {
     while (!paths.empty()) {
         DIR *dirp;
+        vector<string> files;
         if ((dirp = opendir((paths.front()).c_str())) == NULL) {
             perror("OPENDIR");
             exit(1);
         }
+
+        string curr_directory = paths.front();
+        // cout << "GOING TO DIRECTORY: " << paths.front() << endl;
         paths.pop();
 
         if (flag_ALL(flags)) {
@@ -143,7 +213,7 @@ void apply_flags(unsigned flags, queue<string> &paths, vector<string> &files) {
         sort_vector(files);
 
         if (flag_LONG(flags)) {
-            exec_long(dirp, files);
+            exec_long(dirp, files, curr_directory);
         }
         else {
             p_vector(files);
@@ -157,11 +227,10 @@ void apply_flags(unsigned flags, queue<string> &paths, vector<string> &files) {
 }
 
 void init_ls(unsigned flags, queue<string> &paths) {
-    vector<string> files;
     if (paths.empty()) {
         paths.push(".");
     }
-    apply_flags(flags, paths, files);
+    apply_flags(flags, paths);
 }
 
 int main(int argc, char* argv[]) {
