@@ -35,3 +35,28 @@ Everything after `#` will be ignored and treated as a comment. Logical connector
 - Any `"` or `'` will be included in the echo.
 - Able to run multiple instances of RShell in itself.
 - Tabs are not treated as spaces and instead are treated as a character.
+
+# ls Implementation
+
+RShell includes a custom `ls` implementation. Currently it only supports the following flags
+when used: `-a`, `-l`, and `-R'
+
+It should also be noted that `ls` is an entirely separate program of its own and is NOT included in
+the RShell itself as a command.
+
+## Flag Usage
+
+Flags must always be preceded by a `-` and can be combined into cases like `-alR` or `-l -aR` in any
+order.
+
+## Error Messages
+
+In the case of of being unable to access certain files or directories, the name of the path and the
+reason, as to why the system call has failed, will be outputted.
+
+### Known Bugs and Issues
+
+- Accessing certain files and directories, like `.dbus` and sockets like `SingletonLock`, may require root user permissions and may result in undefined behavior
+- Directory names and folders ending with `/` will cause undefined behavior
+- Outputting long file or directory names will result in undefined output formatting
+- The recursive flag will list out files and directories in a level-order fashion, as opposed to the original `ls` implementation which is done in in-order
