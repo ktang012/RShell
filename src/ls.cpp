@@ -63,7 +63,7 @@ unsigned get_flags(const vector<string> &v) {
                 bv = bv | 4;
             }
             else {
-                cout << "Invalid flag" << endl;
+                cout << "invalid option -- " << "\'" << v.at(i).at(j) << "\'" << endl;
                 exit(1);
             }
         }
@@ -204,6 +204,7 @@ bool is_exec(mode_t st_mode) {
 }
 
 void print_long (vector<string> &files, string &curr_directory) {
+    cout << curr_directory << ":" << endl;
     for (unsigned i = 0; i < files.size(); ++i) {
         //cout << "checking: " << curr_directory << "/" << files.at(i) << endl;
         struct stat info;
@@ -219,13 +220,13 @@ void print_long (vector<string> &files, string &curr_directory) {
         gettime(info, time);
         // perms - # of folders - user - group - size in bytes - date/time last modified
         cout << perms << " " << setw(3) << right << info.st_nlink << " ";
-        cout << setw(6) << left << usr << " " << setw(6) << left << grp;
-        cout << " " << setw(6) << right << info.st_size << setw(2) << left << " " << time << " ";
+        cout << setw(7) << left << usr << " " << setw(7) << left << grp;
+        cout << setw(7) << left << " " << info.st_size << setw(7) << left << " " << time << " ";
         if (is_dir(info.st_mode)) {
-            cout << BOLDED_BLUE << files.at(i) << CLEAR_COLORS << endl;
+            cout << BOLDED_BLUE << setw(7) << left << files.at(i) << CLEAR_COLORS << endl;
         }
         else if (is_exec(info.st_mode)) {
-            cout << BOLDED_GREEN << files.at(i) << CLEAR_COLORS << endl;
+            cout << BOLDED_GREEN << setw(7) << left << files.at(i) << CLEAR_COLORS << endl;
         }
         else {
             cout << files.at(i) << endl;
@@ -234,6 +235,8 @@ void print_long (vector<string> &files, string &curr_directory) {
 }
 
 void print_short (const vector<string> &files, const string &curr_directory) {
+    cout << curr_directory << ":" << endl;
+    unsigned spacing_count = 0;
     for (unsigned i = 0; i < files.size(); ++i) {
         //cout << "checking: " << curr_directory << "/" << files.at(i) << endl;
         struct stat info;
@@ -241,15 +244,20 @@ void print_short (const vector<string> &files, const string &curr_directory) {
             cout << "Cannot get " << curr_directory + "/" + files.at(i) << " " << flush;
             perror("STAT");
         }
+        ++spacing_count;
 
         if (is_dir(info.st_mode)) {
-            cout << BOLDED_BLUE << files.at(i) << CLEAR_COLORS << " ";
+            cout << BOLDED_BLUE << setw(10) << left << files.at(i) << CLEAR_COLORS << " ";
         }
         else if (is_exec(info.st_mode)) {
-            cout << BOLDED_GREEN << files.at(i) << CLEAR_COLORS << " ";
+            cout << BOLDED_GREEN << setw(10) << left << files.at(i) << CLEAR_COLORS << " ";
         }
         else {
-            cout << files.at(i) << " ";
+            cout << setw(10) << left << files.at(i) << " ";
+        }
+        if (spacing_count == 5) {
+            spacing_count = 0;
+            cout << endl;
         }
     }
     cout << endl;
@@ -313,18 +321,12 @@ void exec_flags(unsigned flags, queue<string> &paths) {
             sort_vector(files);
 
             if (flag_LONG(flags)) {
-                if (flag_RECURSIVE(flags)) {
-                    print_dir_name(curr_directory);
-                }
                 /* too lazy to optimize */
                 unsigned blocks = calc_blocks(files, curr_directory);
                 cout << "total " << blocks << endl;
                 print_long(files, curr_directory);
             }
             else {
-                if (flag_RECURSIVE(flags)) {
-                    print_dir_name(curr_directory);
-                }
                 print_short(files, curr_directory);
             }
 

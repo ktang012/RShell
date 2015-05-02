@@ -60,3 +60,5 @@ reason, as to why the system call has failed, will be outputted.
 - Directory names and folders ending with `/` will cause undefined behavior
 - Outputting long file or directory names will result in undefined output formatting
 - The recursive flag will list out files and directories in a level-order fashion, as opposed to the original `ls` implementation which is done in in-order
+- Lists files in an order where dot files appear first in alphabetical order
+- Any `-` without a following valid flag would simply execture regular `ls`
