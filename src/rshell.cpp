@@ -14,14 +14,26 @@
 using namespace std;
 using namespace boost;
 
+/* will need to implement file tracing for redirection and piping */
+/* idea 1:
+ * have vector of rd symbols and corresponding arguments, possibly rd flags too..
+ * apply exec to each accordingly
+ * parse cmd to fill rd symbol and argument vectors when appropriate
+ * ex. ls > file1 > file2 - ls fills file1 but then file1 gives content to file2
+ * ex. ls > file1 && > file2 - ls fills file1, finishes cmd. fills file2 with nothing
+ */
+
 unsigned const NORD = 0; // no rd
 unsigned const INRD = 1; // input rd
 unsigned const SINRD = 2; // string inrd
 unsigned const OURD = 3; // output rd
 unsigned const AOURD = 4; // append ourd
 unsigned const FDOURD = 5; // fd ourd
-unsigned const PIPE = 6;
-unsigned const RDFAIL = 7; // syntax error
+unsigned const FDAOURD = 6; // fd aourd
+unsigned const PIPE = 7;
+unsigned const NO_PIPE = 8;
+unsigned const RDFAIL = 9; // syntax error
+string const NO_FILE = "NO FILE";
 
 void pcmd_prompt() {
     struct passwd *user;
@@ -84,13 +96,16 @@ unsigned set_rd(queue<string> q) {
         q.pop();
         return PIPE;
     }
-    return RDFAIL;
+    return NORD;
 }
 
-string get_fn(queue<string> &q) {
-    string fn = q.front();
+bool get_fn(queue<string> &q, string &fn) {
+    if (q.empty()) {
+        return false;
+    }
+    fn = q.front();
     q.pop();
-    return fn;
+    return true;
 }
 
 bool pop_rd_success(queue<string> &q, const unsigned rd, string &fn) {
@@ -100,7 +115,7 @@ bool pop_rd_success(queue<string> &q, const unsigned rd, string &fn) {
     else if (rd == INRD || rd == OURD || rd == PIPE) {
         q.pop();
         if (rd != PIPE) {
-            fn = get_fn(q);
+            return (get_fn(q, fn));
         }
         return true;
     }
@@ -108,14 +123,12 @@ bool pop_rd_success(queue<string> &q, const unsigned rd, string &fn) {
         q.pop();
         q.pop();
         q.pop();
-        fn = get_fn(q);
-        return true;
+        return (get_fn(q, fn));
     }
     else if (rd == AOURD) {
         q.pop();
         q.pop();
-        fn = get_fn(q);
-        return true;
+        return (get_fn(q, fn));
     }
     return false;
 }
@@ -127,25 +140,9 @@ bool is_num(const string &s) {
     }
     return (!s.empty() && it == s.end());
 }
-bool has_input_fd(vector<string> &v, const unsigned rd, unsigned &fd) {
-    if ((rd == OURD || rd == AOURD) && v.size() != 0 && is_num(v.at(v.size()-1))) {
-        fd = atoi(v.at(v.size()-1).c_str());
-        v.pop_back();
-        return true;
-    }
-    return false;
-}
 
 /* modifies queue accordingly, returns redirection flag, and filename to be redirected */
 /* also checks for #> or #>> cases */
-unsigned get_rd(queue<string> &q, vector<string> &v, string &fn, unsigned &fd) {
-    unsigned rd = set_rd(q);
-    has_input_fd(v,rd, fd);
-    if (pop_rd_success(q, rd, fn)) {
-        return rd;
-    }
-    return RDFAIL;
-}
 
 void fill_sub_cmd(queue<string> &q, vector<string> &v) {
     while (!q.empty() && q.front() != "<" && q.front() != ">" && q.front() != "|") {
@@ -155,13 +152,13 @@ void fill_sub_cmd(queue<string> &q, vector<string> &v) {
 }
 
 void print_vector(const vector<string> &v) {
-    if (v.size() == 0) {
+    if (v.empty()) {
+        cout << "[NULL] ";
         return;
     }
     for (unsigned i = 0; i < v.size(); ++i) {
         cout << "[" << v.at(i) << "] ";
     }
-    cout << endl;
 }
 
 void print_queue (queue<string> q) {
@@ -218,46 +215,6 @@ void to_arr_cstring(vector<string> &s, vector<char*> &cs) {
     for (unsigned i = 0; i != s.size(); ++i) {
         cs[i] = &s[i][0];
     }
-}
-
-bool begin_exec(vector<char*> &cs, const unsigned rd, const string &fn, const unsigned input_fd) {
-    int status;
-    int pid = fork();
-    if (pid < 0) { // error
-        perror("FORK");
-        _exit(-1);
-    }
-    else if (pid == 0) { // child
-        if (rd == OURD) {
-            int oldfd, newfd;
-            if (-1 == (newfd = open(fn.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR))) {
-                perror("OPEN OURD");
-                _exit(-1);
-            }
-            if (-1 == (oldfd = dup(1))) {
-                perror("DUP OURD");
-                _exit(-1);
-            }
-            if (-1 == dup2(newfd, 1)) {
-                perror("DUP2 OURD");
-                _exit(-1);
-            }
-        }
-        if (-1 == execvp(cs[0], cs.data())) {
-             perror("EXEC");
-             _exit(-1);
-        }
-        _exit(0);
-    }
-    else if (pid > 0) { // parent
-        if (-1 == wait(&status)) {
-            perror("WAIT");
-        }
-        if (status != 0) {
-            return false;
-        }
-    }
-    return true;
 }
 
 bool connect_success(bool status, queue<string> &q) {
@@ -317,6 +274,215 @@ bool connect_success(bool status, queue<string> &q) {
     }
 }
 
+bool has_input_fd(vector<string> &v, const unsigned rd, unsigned &fd) {
+    if ((rd == OURD || rd == AOURD) && v.size() != 0 && is_num(v.at(v.size()-1))) {
+        fd = atoi(v.at(v.size()-1).c_str());
+        v.pop_back();
+        return true;
+    }
+    return false;
+}
+
+
+int parse_pipes(queue<string> &q, vector< vector<string> > &v, queue<pair<unsigned, string> > &p, queue<unsigned> &pipes) {
+    int pipe_count = 0;
+    for (unsigned i = 0; !q.empty(); ++i) {
+        vector<string> sub_v;
+        while (!q.empty() && q.front() != "<" && q.front() != ">" && q.front() != "|") {
+            sub_v.push_back(q.front());
+            q.pop();
+        }
+        unsigned rd = set_rd(q);
+        string fn; unsigned fd;
+        // bool fdstate = has_input_fd(sub_v, rd, fd); // implement fdourd and fdaourd here
+        if (pop_rd_success(q, rd, fn)) {
+            if (rd == NORD || rd == PIPE) {
+                fn = NO_FILE;
+            }
+            p.push(make_pair(rd, fn));
+        }
+        else {
+            return -1;
+        }
+        if (rd == PIPE) {
+            pipes.push(PIPE);
+            ++pipe_count;
+        }
+        else {
+            pipes.push(NO_PIPE);
+        }
+        v.push_back(sub_v);
+    }
+    return pipe_count;
+}
+
+void print_pair(const pair<unsigned, string> &p) {
+    cout << "(" << p.first << ", " << p.second << ") ";
+}
+
+void print_qpair(queue< pair<unsigned, string> > p) {
+    if (p.empty()) return;
+    while (!p.empty()) {
+        print_pair(p.front());
+        p.pop();
+    }
+    cout << endl;
+}
+
+void print_2dvector(const vector< vector<string> > &v) {
+    if (v.empty()) return;
+    for (unsigned i = 0; i < v.size(); ++i) {
+        cout << "(" << i << ") ";
+        print_vector(v.at(i));
+        cout << endl;
+    }
+}
+
+void convert_vcmd_to_cscmd(vector< vector<string> > &v, vector< vector<char*> > &cs) {
+    for (unsigned i = 0; i < v.size(); ++i) {
+        vector<char*> sub_cs(v.at(i).size()+1);
+        to_arr_cstring(v.at(i), sub_cs);
+        cs.push_back(sub_cs);
+    }
+}
+
+void print_cmd_pair (vector< vector<string> > &v, queue< pair<unsigned, string> > p, queue<unsigned> pipes) {
+    if (v.size() != p.size() && v.size() != pipes.size()) {
+        return;
+    }
+    for (unsigned i = 0; i < v.size(); ++i) {
+        print_vector(v.at(i));
+        print_pair(p.front());
+        cout << "[" << pipes.front() << "] ";
+        pipes.pop();
+        p.pop();
+        cout << endl;
+    }
+}
+
+bool check_size(vector< vector<string> > &v, queue< pair<unsigned, string> > p, queue<unsigned> pipes) {
+    return v.size() == p.size() && v.size() == pipes.size() && p.size() == pipes.size();
+}
+
+bool make_pipes(int fd_2d[][2], const unsigned num_pipes) {
+    for (unsigned i = 0; i < num_pipes; ++i) {
+        if (-1 == pipe(fd_2d[i])) {
+            perror("PIPE");
+            _exit(-1);
+        }
+    }
+    return true;
+}
+
+void p_2darr(int arr[][2], const unsigned num_pipes) {
+    for (unsigned i = 0; i < num_pipes; ++i) {
+        cout << i << ": ";
+        for (unsigned j = 0; j < 2; ++j) {
+            cout << arr[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
+vector<char*> construct_subv (vector< vector<char*> > &v, unsigned &i) {
+    vector<char*> subv;
+    for (unsigned j = 0; j < v.at(i).size(); ++j) {
+        subv.push_back(v.at(i).at(j));
+    }
+    ++i; /* to keep it concurrent with queues */
+    return subv;
+}
+
+pair<unsigned, string> construct_subq (queue< pair<unsigned, string> > &q) {
+    pair<unsigned, string> subq;
+    subq = make_pair(q.front().first, q.front().second);
+    q.pop();
+    return subq;
+}
+
+unsigned construct_pipe (queue<unsigned> &pipes) {
+    unsigned pipe = pipes.front();
+    pipes.pop();
+    return pipe;
+}
+
+int has_multi_rd(vector< vector<char*> > &v, unsigned i) {
+    vector<char*> sub_v;
+    while (sub_v.size() <= 1 && i < v.size()) {
+        sub_v.clear();
+        sub_v = construct_subv(v, i);
+    }
+    if (sub_v.size() > 1) {
+        return i -1;
+    }
+    return i;
+}
+
+void equalize(queue< pair<unsigned, string> > &q, queue<unsigned> &p, int i) {
+    for (unsigned j = 0; j < i-1 && !q.empty() && !p.empty(); ++j) {
+        q.pop();
+        p.pop();
+    }
+    /* not poping p so we can construct a new p */
+    q.pop();
+}
+
+void pdata(const vector<char*> &v, const pair<unsigned, string> &p, const unsigned pipe) {
+    for (unsigned i = 0; i < v.size() -1; ++i) {
+        cout << "[" << v.at(i) << "] ";
+    }
+    cout << "(" << p.first << ", " << p.second << ") ";
+    if (pipe == PIPE) {
+        cout << "PIPE" << endl;
+    }
+    else {
+        cout << "NO PIPE" << endl;
+    }
+}
+
+bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, queue<unsigned> &pipes, unsigned num_pipes) {
+    int status;
+    int fd_2d [num_pipes][2];
+    make_pipes(fd_2d, num_pipes);
+    for (unsigned i = 0; i < v.size() && !q.empty() && !pipes.empty();) { // construct_subv handles i
+        vector<char*> sub_v = construct_subv(v, i);
+        pair<unsigned, string> sub_q = construct_subq(q);
+        unsigned rd = sub_q.first;
+        string fn = sub_q.second;
+        unsigned pipe = construct_pipe(pipes);
+        int merge_count = has_multi_rd(v, i) - i;
+        if (merge_count > 0) {
+            // cout << "Preparing to merge next: " << merge_count << " packets!" << endl;
+            equalize(q, pipes, merge_count);
+            i += merge_count;
+            pipe = construct_pipe(pipes);
+        }
+        pdata(sub_v, sub_q, pipe);
+        int pid = fork();
+        if (pid < 0) {
+            perror("FORK");
+            _exit(-1);
+        }
+        else if (pid == 0) { /* child */
+            if (pipe == PIPE) {
+                /* do pipe shit */
+
+            }
+            else {
+
+
+            }
+
+        }
+
+
+
+
+    }
+    return true;
+}
+
+
 int main(){
     while (1) {
         string cmd_input;
@@ -325,9 +491,7 @@ int main(){
         getline(cin, cmd_input);
         parse_into_queue(list, cmd_input);
         queue<string> cmd;
-        //vector<string> cmd;
         while (!list.empty()) {
-            //qinfo(list); // debugger
             bool exec_success = false;
             if (list.front() == "#") {
                 break;
@@ -341,20 +505,21 @@ int main(){
                 return 0;
             }
             else {
-                while (!cmd.empty()) {
-                    //qinfo(cmd);
-                    vector<string> sub_cmd;
-                    string filename; unsigned input_fd;
-                    /* stops at rd symbols, sets flags, and gets input_fd */
-                    fill_sub_cmd(cmd, sub_cmd);
-                    unsigned rd = get_rd(cmd, sub_cmd, filename, input_fd);
-                    fill_sub_cmd(cmd, sub_cmd);
-                    //vinfo(sub_cmd, rd);
-                    /* figure out how to connect multiple rd and pipe */
-                    vector<char*> cmd_cstring(sub_cmd.size() + 1);
-                    to_arr_cstring(sub_cmd, cmd_cstring);
-                    // cout << "FILENAME " << filename << endl;
-                    exec_success = begin_exec(cmd_cstring, rd, filename, input_fd);
+                qinfo(cmd);
+                vector< vector<string> > v_cmd;
+                queue< pair<unsigned, string> > rd_file;
+                queue<unsigned> pipes;
+                int num_pipes = parse_pipes(cmd, v_cmd, rd_file, pipes);
+                print_cmd_pair(v_cmd, rd_file, pipes);
+                cout << "PIPES FOUND: " << num_pipes << endl;
+                if (check_size(v_cmd, rd_file, pipes) && v_cmd.size() != 0 && num_pipes != -1) {
+                    vector< vector<char*> > cs_cmd;
+                    convert_vcmd_to_cscmd(v_cmd, cs_cmd);
+                    exec_success= begin_exec(cs_cmd, rd_file, pipes, num_pipes);
+                }
+                else {
+                    cout << "Syntax error: formatting issue with redirection or piping" << endl;
+                    break;
                 }
                 if (!connect_success(exec_success, list)) {
                     break;

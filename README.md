@@ -27,6 +27,16 @@ RShell uses the following logic connector: `&&`, `||`, and `;` to connect the ex
 
 Everything after `#` will be ignored and treated as a comment. Logical connectors without a preceding command will fail. Logical connectors without a following command will be ignored.
 
+### I/O Redirection and Piping
+
+RShell uses i/o redirection and piping
+
+- `<` and `<<<` are used for input redirection. The latter case is used for redirecting from a string rather than a file
+
+- `>` and `>>` are used for output redirection. The latter appends to the file rather than overwriting the file.
+
+- `|` is piping and is used to allow different programs to communicate with one another.
+
 ## Known Bugs and Issues
 
 - Everything after `#` will be treated as a comment regardless of its integrity in the command.
@@ -35,6 +45,7 @@ Everything after `#` will be ignored and treated as a comment. Logical connector
 - Any `"` or `'` will be included in the echo.
 - Able to run multiple instances of RShell in itself.
 - Tabs are not treated as spaces and instead are treated as a character.
+- Unlike the bash shell, redirection doesn't chain very well. In a single command only one issue of redirection can be present. If anymore are present they will be ignored. An example of this for input redirection is `ls > file1 > file2` where only `file1` gets the content of `ls` and `file2` is simply ignored. More bugs will be documented as only `OURD` is implemented.
 
 # ls Implementation
 
