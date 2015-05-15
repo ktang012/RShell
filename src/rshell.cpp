@@ -10,19 +10,13 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <pwd.h>
+#include <fstream>
 
 using namespace std;
 using namespace boost;
 
-/* will need to implement file tracing for redirection and piping */
-/* idea 1:
- * have vector of rd symbols and corresponding arguments, possibly rd flags too..
- * apply exec to each accordingly
- * parse cmd to fill rd symbol and argument vectors when appropriate
- * ex. ls > file1 > file2 - ls fills file1 but then file1 gives content to file2
- * ex. ls > file1 && > file2 - ls fills file1, finishes cmd. fills file2 with nothing
- */
 
+/* note: vector<char*> at(.size()) == '\0' */
 unsigned const NORD = 0; // no rd
 unsigned const INRD = 1; // input rd
 unsigned const SINRD = 2; // string inrd
@@ -33,6 +27,7 @@ unsigned const FDAOURD = 6; // fd aourd
 unsigned const PIPE = 7;
 unsigned const NO_PIPE = 8;
 unsigned const RDFAIL = 9; // syntax error
+int const NO_MATCH = -2;
 string const NO_FILE = "NO FILE";
 
 void pcmd_prompt() {
@@ -50,7 +45,7 @@ void pcmd_prompt() {
 }
 
 void parse_into_queue(queue<string> &l, const string &s) {
-    char_separator<char> delim(" ", ";<>&|#") ;
+    char_separator<char> delim(" ", "\";<>&|#") ;
     tokenizer<char_separator<char>> mytok(s, delim);
 
     for (auto i = mytok.begin(); i != mytok.end(); ++i) {
@@ -99,11 +94,23 @@ unsigned set_rd(queue<string> q) {
     return NORD;
 }
 
+string merge_in_quotes(int pops, queue<string> &q);
+int has_matching_quotes(queue<string> q);
+
 bool get_fn(queue<string> &q, string &fn) {
     if (q.empty()) {
         return false;
     }
     fn = q.front();
+    if (fn == "\"") {
+        int pops = has_matching_quotes(q);
+            if (pops == NO_MATCH) {
+                return NO_MATCH;
+            }
+        string s = merge_in_quotes(pops, q);
+        fn = s;
+        return true;
+    }
     q.pop();
     return true;
 }
@@ -283,18 +290,55 @@ bool has_input_fd(vector<string> &v, const unsigned rd, unsigned &fd) {
     return false;
 }
 
+int has_matching_quotes(queue<string> q) {
+    int pops = 0;
+    if (q.front() == "\"") {
+        q.pop();
+        ++pops;
+    }
+    while (!q.empty() && q.front() != "\"") {
+        q.pop();
+        ++pops;
+    }
+    if (!q.empty() && q.front() == "\"") {
+        ++pops;
+        return pops;
+    }
+    return NO_MATCH;
+}
+
+string merge_in_quotes(int pops, queue<string> &q) {
+    q.pop(); /* pop initial quote */
+    string s = q.front();
+    q.pop();
+    for (unsigned i = 0; !q.empty() && i < pops - 2 && q.front() != "\""; ++i) {
+        s = s + " " + q.front();
+        q.pop();
+    }
+    q.pop(); /* pop final quote */
+    return s;
+}
 
 int parse_pipes(queue<string> &q, vector< vector<string> > &v, queue<pair<unsigned, string> > &p, queue<unsigned> &pipes) {
     int pipe_count = 0;
     for (unsigned i = 0; !q.empty(); ++i) {
         vector<string> sub_v;
         while (!q.empty() && q.front() != "<" && q.front() != ">" && q.front() != "|") {
-            sub_v.push_back(q.front());
-            q.pop();
+            if (q.front() == "\"") {
+                int pops = has_matching_quotes(q);
+                if (pops == NO_MATCH) {
+                    return NO_MATCH;
+                }
+                string s = merge_in_quotes(pops, q);
+                sub_v.push_back(s);
+            }
+            else {
+                sub_v.push_back(q.front());
+                q.pop();
+            }
         }
         unsigned rd = set_rd(q);
         string fn; unsigned fd;
-        // bool fdstate = has_input_fd(sub_v, rd, fd); // implement fdourd and fdaourd here
         if (pop_rd_success(q, rd, fn)) {
             if (rd == NORD || rd == PIPE) {
                 fn = NO_FILE;
@@ -443,7 +487,7 @@ void pdata(const vector<char*> &v, const pair<unsigned, string> &p, const unsign
 bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, queue<unsigned> &pipes, unsigned num_pipes) {
     int status;
     int fd_2d [num_pipes][2];
-    make_pipes(fd_2d, num_pipes);
+    //make_pipes(fd_2d, num_pipes);
     for (unsigned i = 0; i < v.size() && !q.empty() && !pipes.empty();) { // construct_subv handles i
         vector<char*> sub_v = construct_subv(v, i);
         pair<unsigned, string> sub_q = construct_subq(q);
@@ -457,7 +501,7 @@ bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, 
             i += merge_count;
             pipe = construct_pipe(pipes);
         }
-        pdata(sub_v, sub_q, pipe);
+        // pdata(sub_v, sub_q, pipe);
         int pid = fork();
         if (pid < 0) {
             perror("FORK");
@@ -469,15 +513,86 @@ bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, 
 
             }
             else {
-
-
+               int oldfd, newfd;
+               if (rd == INRD) {
+                   if (-1 == (newfd = open(fn.c_str(), O_RDONLY))) {
+                       perror("OPEN INRD");
+                       _exit(-1);
+                   }
+                   if (-1 == (oldfd = dup(0))) {
+                       perror("DUP INRD");
+                       _exit(-1);
+                   }
+                   if (-1 == dup2(newfd, 0)) {
+                       perror("DUP2 INRD");
+                       _exit(-1);
+                   }
+               }
+               else if (rd == SINRD) {
+                   string s = fn;
+                   string temp_file = "NULL_TEMP.TXT";
+                   ofstream out(temp_file);
+                   out << s << '\n';
+                   out.close();
+                   if (-1 == (newfd = open(temp_file.c_str(), O_RDONLY))) {
+                       perror("OPEN SINRD");
+                       _exit(-1);
+                   }
+                   if (-1 == (oldfd = dup(0))) {
+                       perror("DUP SINRD");
+                       _exit(-1);
+                   }
+                   if (-1 == dup2(newfd, 0)) {
+                       perror("DUP2 SINRD");
+                       _exit(-1);
+                   }
+                   if (-1 == unlink(temp_file.c_str())) {
+                       perror("UNLINK SINRD");
+                       _exit(-1);
+                   }
+               }
+               else if (rd == OURD) {
+                   if (-1 == (newfd = open(fn.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR))) {
+                       perror("OPEN OURD");
+                       _exit(-1);
+                   }
+                   if (-1 == (oldfd = dup(1))) {
+                       perror("DUP OURD");
+                       _exit(-1);
+                   }
+                   if (-1 == dup2(newfd, 1)) {
+                       perror("DUP2 OURD");
+                       _exit(-1);
+                   }
+               }
+               else if (rd == AOURD) {
+                   if (-1 == (newfd = open(fn.c_str(), O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR))) {
+                       perror("OPEN OURD");
+                       _exit(-1);
+                   }
+                   if (-1 == (oldfd = dup(1))) {
+                       perror("DUP OURD");
+                       _exit(-1);
+                   }
+                   if (-1 == dup2(newfd, 1)) {
+                       perror("DUP2 OURD");
+                       _exit(-1);
+                   }
+               }
+               if (-1 == execvp(sub_v[0], sub_v.data())) {
+                   perror("EXEC");
+                   _exit(-1);
+               }
             }
-
         }
-
-
-
-
+        else if (pid > 0) {
+            if (-1 == wait(&status)) {
+                perror("WAIT");
+            }
+            if (status != 0) {
+                return false;
+            }
+        }
     }
     return true;
 }
@@ -512,6 +627,10 @@ int main(){
                 int num_pipes = parse_pipes(cmd, v_cmd, rd_file, pipes);
                 print_cmd_pair(v_cmd, rd_file, pipes);
                 cout << "PIPES FOUND: " << num_pipes << endl;
+                if (num_pipes == NO_MATCH) {
+                    cout << "Syntax error: no matching \" in command" << endl;
+                    break;
+                }
                 if (check_size(v_cmd, rd_file, pipes) && v_cmd.size() != 0 && num_pipes != -1) {
                     vector< vector<char*> > cs_cmd;
                     convert_vcmd_to_cscmd(v_cmd, cs_cmd);
