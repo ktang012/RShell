@@ -29,6 +29,8 @@ unsigned const NO_PIPE = 8;
 unsigned const RDFAIL = 9; // syntax error
 int const NO_MATCH = -2;
 string const NO_FILE = "NO FILE";
+unsigned const PIPE_READ = 0;
+unsigned const PIPE_WRITE = 1;
 
 void pcmd_prompt() {
     struct passwd *user;
@@ -402,6 +404,7 @@ void print_cmd_pair (vector< vector<string> > &v, queue< pair<unsigned, string> 
         p.pop();
         cout << endl;
     }
+    cout << "found " << i << " pipes" << endl;
 }
 
 bool check_size(vector< vector<string> > &v, queue< pair<unsigned, string> > p, queue<unsigned> pipes) {
@@ -409,6 +412,7 @@ bool check_size(vector< vector<string> > &v, queue< pair<unsigned, string> > p, 
 }
 
 bool make_pipes(int fd_2d[][2], const unsigned num_pipes) {
+    if (num_pipes == 0) return false;
     for (unsigned i = 0; i < num_pipes; ++i) {
         if (-1 == pipe(fd_2d[i])) {
             perror("PIPE");
@@ -484,11 +488,15 @@ void pdata(const vector<char*> &v, const pair<unsigned, string> &p, const unsign
     }
 }
 
-bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, queue<unsigned> &pipes, unsigned num_pipes) {
+bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, queue<unsigned> &pipes, const unsigned num_pipes) {
     int status;
     int fd_2d [num_pipes][2];
-    //make_pipes(fd_2d, num_pipes);
-    for (unsigned i = 0; i < v.size() && !q.empty() && !pipes.empty();) { // construct_subv handles i
+    int curr_num_pipe = 0;
+    if (make_pipes(fd_2d, num_pipes)) {
+        cout << "Made " << num_pipes << " pipes" << endl;
+    }
+    /* i is incremented in construct_subv */
+    for (unsigned i = 0; i < v.size() && !q.empty() && !pipes.empty(); ) {
         vector<char*> sub_v = construct_subv(v, i);
         pair<unsigned, string> sub_q = construct_subq(q);
         unsigned rd = sub_q.first;
@@ -496,7 +504,7 @@ bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, 
         unsigned pipe = construct_pipe(pipes);
         int merge_count = has_multi_rd(v, i) - i;
         if (merge_count > 0) {
-            // cout << "Preparing to merge next: " << merge_count << " packets!" << endl;
+            // cout << "Preparing to merge next: " << merge_count << " group(s)" << endl;
             equalize(q, pipes, merge_count);
             i += merge_count;
             pipe = construct_pipe(pipes);
@@ -508,87 +516,128 @@ bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, 
             _exit(-1);
         }
         else if (pid == 0) { /* child */
-            if (pipe == PIPE) {
-                /* do pipe shit */
-
+            int oldfd, newfd;
+            if (rd == INRD) {
+                if (-1 == (newfd = open(fn.c_str(), O_RDONLY))) {
+                    perror("OPEN INRD");
+                    _exit(-1);
+                }
+                if (-1 == (oldfd = dup(0))) {
+                    perror("DUP INRD");
+                    _exit(-1);
+                }
+                if (-1 == dup2(newfd, 0)) {
+                    perror("DUP2 INRD");
+                    _exit(-1);
+                }
             }
-            else {
-               int oldfd, newfd;
-               if (rd == INRD) {
-                   if (-1 == (newfd = open(fn.c_str(), O_RDONLY))) {
-                       perror("OPEN INRD");
-                       _exit(-1);
-                   }
-                   if (-1 == (oldfd = dup(0))) {
-                       perror("DUP INRD");
-                       _exit(-1);
-                   }
-                   if (-1 == dup2(newfd, 0)) {
-                       perror("DUP2 INRD");
-                       _exit(-1);
-                   }
-               }
-               else if (rd == SINRD) {
-                   string s = fn;
-                   string temp_file = "NULL_TEMP.TXT";
-                   ofstream out(temp_file);
-                   out << s << '\n';
-                   out.close();
-                   if (-1 == (newfd = open(temp_file.c_str(), O_RDONLY))) {
-                       perror("OPEN SINRD");
-                       _exit(-1);
-                   }
-                   if (-1 == (oldfd = dup(0))) {
-                       perror("DUP SINRD");
-                       _exit(-1);
-                   }
-                   if (-1 == dup2(newfd, 0)) {
-                       perror("DUP2 SINRD");
-                       _exit(-1);
-                   }
-                   if (-1 == unlink(temp_file.c_str())) {
-                       perror("UNLINK SINRD");
-                       _exit(-1);
-                   }
-               }
-               else if (rd == OURD) {
-                   if (-1 == (newfd = open(fn.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR))) {
-                       perror("OPEN OURD");
-                       _exit(-1);
-                   }
-                   if (-1 == (oldfd = dup(1))) {
-                       perror("DUP OURD");
-                       _exit(-1);
-                   }
-                   if (-1 == dup2(newfd, 1)) {
-                       perror("DUP2 OURD");
-                       _exit(-1);
-                   }
-               }
-               else if (rd == AOURD) {
-                   if (-1 == (newfd = open(fn.c_str(), O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR))) {
-                       perror("OPEN OURD");
-                       _exit(-1);
-                   }
-                   if (-1 == (oldfd = dup(1))) {
-                       perror("DUP OURD");
-                       _exit(-1);
-                   }
-                   if (-1 == dup2(newfd, 1)) {
-                       perror("DUP2 OURD");
-                       _exit(-1);
-                   }
-               }
-               if (-1 == execvp(sub_v[0], sub_v.data())) {
-                   perror("EXEC");
-                   _exit(-1);
-               }
+            else if (rd == SINRD) {
+                string s = fn;
+                string temp_file = "NULL_TEMP.TXT";
+                ofstream out(temp_file);
+                out << s << '\n';
+                out.close();
+                if (-1 == (newfd = open(temp_file.c_str(), O_RDONLY))) {
+                    perror("OPEN SINRD");
+                    _exit(-1);
+                }
+                if (-1 == (oldfd = dup(0))) {
+                    perror("DUP SINRD");
+                    _exit(-1);
+                }
+                if (-1 == dup2(newfd, 0)) {
+                    perror("DUP2 SINRD");
+                    _exit(-1);
+                }
+                if (-1 == unlink(temp_file.c_str())) {
+                    perror("UNLINK SINRD");
+                    _exit(-1);
+                }
             }
+            else if (rd == OURD) {
+                if (-1 == (newfd = open(fn.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR))) {
+                    perror("OPEN OURD");
+                    _exit(-1);
+                }
+                if (-1 == (oldfd = dup(1))) {
+                    perror("DUP OURD");
+                    _exit(-1);
+                }
+                if (-1 == dup2(newfd, 1)) {
+                    perror("DUP2 OURD");
+                    _exit(-1);
+                }
+            }
+            else if (rd == AOURD) {
+                if (-1 == (newfd = open(fn.c_str(), O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR))) {
+                    perror("OPEN OURD");
+                    _exit(-1);
+                }
+                if (-1 == (oldfd = dup(1))) {
+                    perror("DUP OURD");
+                    _exit(-1);
+                }
+                if (-1 == dup2(newfd, 1)) {
+                    perror("DUP2 OURD");
+                    _exit(-1);
+                }
+            }
+            if (num_pipes > 0) {
+                if (curr_num_pipe == 0) { // on our initial pipe
+                    if (-1 == dup2(fd_2d[curr_num_pipe][PIPE_WRITE], 1)) { // write to pipe stdout
+                        perror("DUP2 FIRST");
+                        _exit(-1);
+                    }
+                    if (-1 == close(fd_2d[curr_num_pipe][PIPE_READ])) { // close pipe stdin
+                        perror("CLOSE FIRST");
+                        _exit(-1);
+                    }
+                }
+                else if (curr_num_pipe == num_pipes) { // on our last pipe
+                    if (-1 == dup2(fd_2d[curr_num_pipe-1][PIPE_READ], 0)) { // read from pipe stdin
+                        perror("DUP2 FINAL");
+                        _exit(-1);
+                    }
+                    if (-1 == close(fd_2d[curr_num_pipe-1][PIPE_WRITE])) { // close pipe stdout
+                        perror("CLOSE FINAL");
+                        _exit(-1);
+                    }
+                }
+                else { // on a middle pipe
+                    if (-1 == dup2(fd_2d[curr_num_pipe-1][PIPE_READ], 0)) { // read from pipe stdin
+                        perror("DUP2 PREV");
+                        _exit(-1);
+                    }
+                    if (-1 == close(fd_2d[curr_num_pipe-1][PIPE_WRITE])) { // close pipe stdout
+                        perror("CLOSE PREV");
+                        _exit(-1);
+                    }
+                    if (-1 == dup2(fd_2d[curr_num_pipe][PIPE_WRITE], 1)) { // write to pipe stdout
+                        perror("DUP2 NEW");
+                        _exit(-1);
+                    }
+               }
+           }
+           if (-1 == execvp(sub_v[0], sub_v.data())) {
+               perror("EXEC");
+               _exit(-1);
+           }
         }
-        else if (pid > 0) {
+        else if (pid > 0) { // parent
+            if (num_pipes > 0) {
+                if (curr_num_pipe > 0) {
+                    if (-1 == close(fd_2d[curr_num_pipe - 1][0])) {
+                        perror("CLOSE PARENT");
+                    }
+                    if (-1 == close(fd_2d[curr_num_pipe - 1][1])) {
+                        perror("CLOSE PARENT");
+                    }
+                }
+            }
             if (-1 == wait(&status)) {
                 perror("WAIT");
             }
+            ++curr_num_pipe;
             if (status != 0) {
                 return false;
             }
@@ -596,7 +645,6 @@ bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, 
     }
     return true;
 }
-
 
 int main(){
     while (1) {
@@ -620,13 +668,12 @@ int main(){
                 return 0;
             }
             else {
-                qinfo(cmd);
+                // qinfo(cmd);
                 vector< vector<string> > v_cmd;
                 queue< pair<unsigned, string> > rd_file;
                 queue<unsigned> pipes;
                 int num_pipes = parse_pipes(cmd, v_cmd, rd_file, pipes);
-                print_cmd_pair(v_cmd, rd_file, pipes);
-                cout << "PIPES FOUND: " << num_pipes << endl;
+                // print_cmd_pair(v_cmd, rd_file, pipes);
                 if (num_pipes == NO_MATCH) {
                     cout << "Syntax error: no matching \" in command" << endl;
                     break;
