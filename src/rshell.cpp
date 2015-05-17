@@ -29,6 +29,8 @@ unsigned const NO_PIPE = 8;
 unsigned const RDFAIL = 9; // syntax error
 int const NO_MATCH = -2;
 string const NO_FILE = "NO FILE";
+int const MAX_NUM_PIPES = 40;
+int const FD_ARR = 2;
 unsigned const PIPE_READ = 0;
 unsigned const PIPE_WRITE = 1;
 
@@ -313,7 +315,7 @@ string merge_in_quotes(int pops, queue<string> &q) {
     q.pop(); /* pop initial quote */
     string s = q.front();
     q.pop();
-    for (unsigned i = 0; !q.empty() && i < pops - 2 && q.front() != "\""; ++i) {
+    for (int i = 0; !q.empty() && i < pops - 2 && q.front() != "\""; ++i) {
         s = s + " " + q.front();
         q.pop();
     }
@@ -340,7 +342,7 @@ int parse_pipes(queue<string> &q, vector< vector<string> > &v, queue<pair<unsign
             }
         }
         unsigned rd = set_rd(q);
-        string fn; unsigned fd;
+        string fn; // unsigned fd; // may implement user fd later...
         if (pop_rd_success(q, rd, fn)) {
             if (rd == NORD || rd == PIPE) {
                 fn = NO_FILE;
@@ -396,13 +398,15 @@ void print_cmd_pair (vector< vector<string> > &v, queue< pair<unsigned, string> 
     if (v.size() != p.size() && v.size() != pipes.size()) {
         return;
     }
-    for (unsigned i = 0; i < v.size(); ++i) {
+    unsigned i = 0;
+    while (i < v.size()) {
         print_vector(v.at(i));
         print_pair(p.front());
         cout << "[" << pipes.front() << "] ";
         pipes.pop();
         p.pop();
         cout << endl;
+        ++i;
     }
     cout << "found " << i << " pipes" << endl;
 }
@@ -411,7 +415,7 @@ bool check_size(vector< vector<string> > &v, queue< pair<unsigned, string> > p, 
     return v.size() == p.size() && v.size() == pipes.size() && p.size() == pipes.size();
 }
 
-bool make_pipes(int fd_2d[][2], const unsigned num_pipes) {
+bool make_pipes(int fd_2d[][FD_ARR], const unsigned num_pipes) {
     if (num_pipes == 0) return false;
     for (unsigned i = 0; i < num_pipes; ++i) {
         if (-1 == pipe(fd_2d[i])) {
@@ -467,7 +471,7 @@ int has_multi_rd(vector< vector<char*> > &v, unsigned i) {
 }
 
 void equalize(queue< pair<unsigned, string> > &q, queue<unsigned> &p, int i) {
-    for (unsigned j = 0; j < i-1 && !q.empty() && !p.empty(); ++j) {
+    for (int j = 0; j < i-1 && !q.empty() && !p.empty(); ++j) {
         q.pop();
         p.pop();
     }
@@ -488,26 +492,24 @@ void pdata(const vector<char*> &v, const pair<unsigned, string> &p, const unsign
     }
 }
 
-bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, queue<unsigned> &pipes, const unsigned num_pipes) {
+bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, queue<unsigned> &pipes, const int num_pipes) {
     int status;
-    int fd_2d [num_pipes][2];
+    int fd_2d [MAX_NUM_PIPES][FD_ARR];
     int curr_num_pipe = 0;
-    if (make_pipes(fd_2d, num_pipes)) {
-        cout << "Made " << num_pipes << " pipes" << endl;
-    }
+    make_pipes(fd_2d, num_pipes);
     /* i is incremented in construct_subv */
     for (unsigned i = 0; i < v.size() && !q.empty() && !pipes.empty(); ) {
         vector<char*> sub_v = construct_subv(v, i);
         pair<unsigned, string> sub_q = construct_subq(q);
         unsigned rd = sub_q.first;
         string fn = sub_q.second;
-        unsigned pipe = construct_pipe(pipes);
+        //unsigned pipe = construct_pipe(pipes); // unused variable
         int merge_count = has_multi_rd(v, i) - i;
         if (merge_count > 0) {
             // cout << "Preparing to merge next: " << merge_count << " group(s)" << endl;
             equalize(q, pipes, merge_count);
             i += merge_count;
-            pipe = construct_pipe(pipes);
+            //pipe = construct_pipe(pipes); //unused variable
         }
         // pdata(sub_v, sub_q, pipe);
         int pid = fork();
@@ -582,7 +584,7 @@ bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, 
                     _exit(-1);
                 }
             }
-            if (num_pipes > 0) {
+            if (num_pipes > 0) { // if we're piping
                 if (curr_num_pipe == 0) { // on our initial pipe
                     if (-1 == dup2(fd_2d[curr_num_pipe][PIPE_WRITE], 1)) { // write to pipe stdout
                         perror("DUP2 FIRST");
@@ -608,7 +610,7 @@ bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, 
                         perror("DUP2 PREV");
                         _exit(-1);
                     }
-                    if (-1 == close(fd_2d[curr_num_pipe-1][PIPE_WRITE])) { // close pipe stdout
+                    if (-1 == close(fd_2d[curr_num_pipe-1][PIPE_WRITE])) { // close prev pipe stdout
                         perror("CLOSE PREV");
                         _exit(-1);
                     }
