@@ -42,10 +42,12 @@ RShell uses i/o redirection and piping
 - Everything after `#` will be treated as a comment regardless of its integrity in the command.
 - `&` and `|` are treated as improper use of connectors if used without its complement.
 - The use of `echo` will echo everything following it until a `&`, `|`, `;`, or `#` is reached.
-- Any `"` or `'` will be included in the echo.
+- Any `'` will be included in the echo.
 - Able to run multiple instances of RShell in itself.
+- Usage of `"` must always be followed by another matching `"`
 - Tabs are not treated as spaces and instead are treated as a character.
-- Unlike the bash shell, redirection doesn't chain very well. In a single command only one issue of redirection can be present. If anymore are present they will be ignored. An example of this for input redirection is `ls > file1 > file2` where only `file1` gets the content of `ls` and `file2` is simply ignored. More bugs will be documented as only `OURD` is implemented.
+- Multiple I/O redirection without a following pipe will be truncated to the closest redirection such as `cat < file1 < file2 < file3` will be truncated to just `cat < file1`.
+- Appending a flag following a file redirection will result in interpretation of the flag as a command such as `ls > file1 -a`. `-a` will be executed as a command instead of a flag. So input such as `ls > file1 cat file1 | sort` will result in undefined behavior, but in this case an infinite loop. It is important to define your flags before executing a command with redirection.
 
 # ls Implementation
 
