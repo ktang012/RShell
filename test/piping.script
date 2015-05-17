@@ -1,0 +1,485 @@
+Script started on Sun 17 May 2015 02:44:36 PM PDT
+]0;kevin@kevin-Satellite-P55-A: ~/Desktop/CS100/rshell/test_fileskevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell/test_files$ ../r[Kbin/rshell
+kevin@kevin-Satellite-P55-A$ cat < infile # basic input redirection
+A man's best friend
+A piney apple
+Honeycomb
+Hello world! My name is Kevin
+Starcraft
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+Unicorn with no horn
+Black coffee
+Zebra with no stripes
+Hairless monkey
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+kevin@kevin-Satellite-P55-A$ cat <<< "hello world" # basic string input redirection
+hello world
+kevin@kevin-Satellite-P55-A$ ls > file1     outfile1 # basic file    output redirection
+kevin@kevin-Satellite-P55-A$ cat outfile1 # testing cont    previous test case
+infile
+outfile
+outfile1
+outfile2
+outfile3
+kevin@kevin-Satellite-P55-A$ ls > out     -a >> outfile2 1 # basic output append redirection
+kevin@kevin-Satellite-P55-A$ cat outfile1
+infile
+outfile
+outfile1
+outfile2
+outfile3
+.
+..
+infile
+outfile
+outfile1
+outfile2
+outfile3
+kevin@kevin-Satellite-P55-A$ ls |    sort outfile1 | grep in  "infile" | tr a-z A_ -Z | cat > outfile2 # testing p multipp       3+ p    pipes and output redirection
+kevin@kevin-Satellite-P55-A$ cat outfile2 # see   contents of outfile2
+INFILE
+INFILE
+kevin@kevin-Satellite-P55-A$ echo "HELLO WORLD" | cat > file1 > file2 # only file1                          file1       outfile1 o > outfile2 > outfile3 # only outfile1 get' s c input, rest of the files are truncat       ignored
+kevin@kevin-Satellite-P55-A$ cat outfile1 # contents of outfile1
+HELLO WORLD
+kevin@kevin-Satellite-P55-A$ cat < infile1 |   < outfile1 > outfile2 | sort # testing multiple redirection... gets truncate         i          only the cloe sests gets used, rest ar                          loest  s                           
+OPEN INRD: No such file or directory
+kevin@kevin-Satellite-P55-A$ cat < infile1     | sort
+OPEN INRD: No such file or directory
+kevin@kevin-Satellite-P55-A$ cat infile          # oops ..  .  .. forgot      there was no infile1
+kevin@kevin-Satellite-P55-A$ cat < infile1  < outfile1 < outfile2 > outfile3 | sort # testing multiple redirection
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+A man's best friend
+A piney apple
+Black coffee
+Hairless monkey
+Hello world! My name is Kevin
+Honeycomb
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starcraft
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+Unicorn with no horn
+Zebra with no stripes
+kevin@kevin-Satellite-P55-A$ echo "testing 123 hello world" c }   | cat > outfile1 > outfile2 | tr a-z A-Z | cat
+TESTING 123 HELLO WORLD
+kevin@kevin-Satellite-P55-A$ # p testin        echo "testing 123 g hello world
+Syntax error: no matching " in command
+kevin@kevin-Satellite-P55-A$  echo "testing 123 hello world" | cat > outfile1 > outifle2     file2 | tr a-z A-z Z | cat > oytf   utfile3
+kevin@kevin-Satellite-P55-A$ # testi     see   looking at inp              testing cases where inpput   ut redirection is in between pipes
+kevin@kevin-Satellite-P55-A$ cato utfile1          outfile1
+kevin@kevin-Satellite-P55-A$ cat outfile3 # has contents inside
+TESTING 123 HELLO WORLD
+kevin@kevin-Satellite-P55-A$ cat < infile1  | ge rep "Star" | cat > outfile1   # testing grep
+kevin@kevin-Satellite-P55-A$ cat outfile1
+Starcraft
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+kevin@kevin-Satellite-P55-A$ cat                                         > < infile1 # , lots of space case 1
+OPEN INRD: No such file or directory
+kevin@kevin-Satellite-P55-A$ # forgot there's no infile1... again
+kevin@kevin-Satellite-P55-A$ cat                                        < infile # losts of      ts of space case 1
+A man's best friend
+A piney apple
+Honeycomb
+Hello world! My name is Kevin
+Starcraft
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+Unicorn with no horn
+Black coffee
+Zebra with no stripes
+Hairless monkey
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+kevin@kevin-Satellite-P55-A$                cat       < infile1                          infile1     < infile2                <   > out           > outfile1 # out   >                      outfile1 # > outfile gets truncated
+A man's best friend
+A piney apple
+Honeycomb
+Hello world! My name is Kevin
+Starcraft
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+Unicorn with no horn
+Black coffee
+Zebra with no stripes
+Hairless monkey
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+kevin@kevin-Satellite-P55-A$ cat < infile | wc -l | cat | tr 0-     cat > outfile1
+kevin@kevin-Satellite-P55-A$ # testing multiple cats  
+kevin@kevin-Satellite-P55-A$ cat outfile1
+15
+kevin@kevin-Satellite-P55-A$ cat < infile | cat | cat | sort | grep "Star" | cat > outfile1 # testing multiple pipes and cats
+kevin@kevin-Satellite-P55-A$ cat outfile1 # looking at contents
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starcraft
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+kevin@kevin-Satellite-P55-A$ ls -a >> outfile1 | sort | cat         # testing append output and s pipe
+.
+..
+infile
+outfile
+outfile1
+outfile2
+outfile3
+kevin@kevin-Satellite-P55-A$ cat outfile1
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starcraft
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+kevin@kevin-Satellite-P55-A$ # previous test case worked accordingly since p there's nothign to rw ead from the pipe since the input is directed to outfile1
+kevin@kevin-Satellite-P55-A$ ls -a | sort | outfile       grep "out" | tr a-z A-Z # multipiping wi ith no redirection
+OUTFILE
+OUTFILE1
+OUTFILE2
+OUTFILE3
+kevin@kevin-Satellite-P55-A$ ls -a                                                 ls      -s a       | sort     |      grep      "out" | tr az -z A-z Z |   # multipiping with lots s of space
+OUTFILE
+OUTFILE1
+OUTFILE2
+OUTFILE3
+kevin@kevin-Satellite-P55-A$ string        echo "      cat <<< "         wc <<< "this is a wt  four    six word sentence"^[[D^[[D^[[D^[[D^[[D                     " # testing wc on string input redirection
+ 1  6 28
+kevin@kevin-Satellite-P55-A$ wc                   wc       <<< "this is a six worl ld sentenc                         word sent   ence" # testing w wc on string inout   put redirection with l spaces
+ 1  7 29
+kevin@kevin-Satellite-P55-A$ cat < infile1  | tr A-Z a-z | tee outfile1 | tr a-z A-Z > outfile2 # testing case given on assignment spec
+kevin@kevin-Satellite-P55-A$ cat infile # conten      checking infl ile
+A man's best friend
+A piney apple
+Honeycomb
+Hello world! My name is Kevin
+Starcraft
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+Unicorn with no horn
+Black coffee
+Zebra with no stripes
+Hairless monkey
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+kevin@kevin-Satellite-P55-A$ cat outfile1 # checking outfile1
+a man's best friend
+a piney apple
+honeycomb
+hello world! my name is kevin
+starcraft
+starbucks is diabetes in a cup
+starbursts is diabetes in a wrapper
+starfruit is delicious
+star wars
+twinkle twinkle little star
+unicorn with no horn
+black coffee
+zebra with no stripes
+hairless monkey
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+kevin@kevin-Satellite-P55-A$ cat outfile2 # checking outfile2
+A MAN'S BEST FRIEND
+A PINEY APPLE
+HONEYCOMB
+HELLO WORLD! MY NAME IS KEVIN
+STARCRAFT
+STARBUCKS IS DIABETES IN A CUP
+STARBURSTS IS DIABETES IN A WRAPPER
+STARFRUIT IS DELICIOUS
+STAR WARS
+TWINKLE TWINKLE LITTLE STAR
+UNICORN WITH NO HORN
+BLACK COFFEE
+ZEBRA WITH NO STRIPES
+HAIRLESS MONKEY
+A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+kevin@kevin-Satellite-P55-A$ cat < o infile > outfile1 > outfile2 | sort # testing multi redi irection                             > outfile3 > outfile4 > outfile5 # testing multi redirection at ends of pipe
+kevin@kevin-Satellite-P55-A$ cat in  outfile3 # only                     cat infile # checking infile
+A man's best friend
+A piney apple
+Honeycomb
+Hello world! My name is Kevin
+Starcraft
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+Unicorn with no horn
+Black coffee
+Zebra with no stripes
+Hairless monkey
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+kevin@kevin-Satellite-P55-A$ cat outfile1 # check outfile1
+a man's best friend
+a piney apple
+honeycomb
+hello world! my name is kevin
+starcraft
+starbucks is diabetes in a cup
+starbursts is diabetes in a wrapper
+starfruit is delicious
+star wars
+twinkle twinkle little star
+unicorn with no horn
+black coffee
+zebra with no stripes
+hairless monkey
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+kevin@kevin-Satellite-P55-A$ # cat outfile2 3 # only outfile3 has the   content
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+A man's best friend
+A piney apple
+Black coffee
+Hairless monkey
+Hello world! My name is Kevin
+Honeycomb
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starcraft
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+Unicorn with no horn
+Zebra with no stripes
+kevin@kevin-Satellite-P55-A$ cat outfile4 # doesn't exit st?
+cat: outfile4: No such file or directory
+kevin@kevin-Satellite-P55-A$ ls < > outfile1          -a > outfil    tfile1 -l # flags after the redirection                 redirection wil  l be treated as command -- see README.md
+EXEC: No such file or directory
+kevin@kevin-Satellite-P55-A$ cat > out     < outfile1 # checking outfile1
+.
+..
+infile
+outfile
+outfile1
+outfile2
+outfile3
+kevin@kevin-Satellite-P55-A$ ls -al > outfile1                 # ls -al | c   > outfile1 cat |     sort | ca  t # this w      THIS WILL RESULT IN UNDEFINED BEHAVIOR ALWAYS            
+kevin@kevin-Satellite-P55-A$ ls > io  outfile1  ;  ; cat outfile1
+infile
+outfile
+outfile1
+outfile2
+outfile3
+kevin@kevin-Satellite-P55-A$ ls > outfile1 ; cat     ;  ;cat outfile1 # no space
+infile
+outfile
+outfile1
+outfile2
+outfile3
+kevin@kevin-Satellite-P55-A$ ls >      cat < infile | sort | grep "sta   Star" | cat   t > outfile1 >   && cat outfile1 # testing piping and logical connectors
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starcraft
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+kevin@kevin-Satellite-P55-A$ cat < no_existent  _file | sort | grep "Star" | cat > outfile1 || echo "this s failed!" # testing failure in redirection and piping
+OPEN INRD: No such file or directory
+this failed!
+kevin@kevin-Satellite-P55-A$ echo "hello world i forgot a matching quotation mark |||  echo "needs matching   g quotes" # n command fails               usage of " must always be pai             always hv ave a following "
+Syntax error: no matching " in command
+kevin@kevin-Satellite-P55-A$ l cat infile | tee outfile1 | sort # testing tee and    
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+A man's best friend
+A piney apple
+Black coffee
+Hairless monkey
+Hello world! My name is Kevin
+Honeycomb
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starcraft
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+Unicorn with no horn
+Zebra with no stripes
+kevin@kevin-Satellite-P55-A$ cat outfile1 # contents of outfile1
+A man's best friend
+A piney apple
+Honeycomb
+Hello world! My name is Kevin
+Starcraft
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+Unicorn with no horn
+Black coffee
+Zebra with no stripes
+Hairless monkey
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+kevin@kevin-Satellite-P55-A$ cst  at outfile       infile | tr A a-z A-Z | sort # testing conversion ppi  iping with n       
+A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+A MAN'S BEST FRIEND
+A PINEY APPLE
+BLACK COFFEE
+HAIRLESS MONKEY
+HELLO WORLD! MY NAME IS KEVIN
+HONEYCOMB
+STARBUCKS IS DIABETES IN A CUP
+STARBURSTS IS DIABETES IN A WRAPPER
+STARCRAFT
+STARFRUIT IS DELICIOUS
+STAR WARS
+TWINKLE TWINKLE LITTLE STAR
+UNICORN WITH NO HORN
+ZEBRA WITH NO STRIPES
+kevin@kevin-Satellite-P55-A$ cat infile | grep "Star    ^Star" | # testing ^ in grep
+Starcraft
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starfruit is delicious
+Star Wars
+kevin@kevin-Satellite-P55-A$ cat infile | grep "Star" # notice the            previous test case lacked twinkle tiwnkly   e little star
+Starcraft
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+kevin@kevin-Satellite-P55-A$ ls >> i outfl ile1 |  ; cat outfile1 # testing outfile1
+A man's best friend
+A piney apple
+Honeycomb
+Hello world! My name is Kevin
+Starcraft
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+Unicorn with no horn
+Black coffee
+Zebra with no stripes
+Hairless monkey
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+infile
+outfile
+outfile1
+outfile2
+outfile3
+kevin@kevin-Satellite-P55-A$ ls >   -al >> outfile1  ; cat outfile1 # testing appending more to outfile1
+A man's best friend
+A piney apple
+Honeycomb
+Hello world! My name is Kevin
+Starcraft
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+Unicorn with no horn
+Black coffee
+Zebra with no stripes
+Hairless monkey
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+infile
+outfile
+outfile1
+outfile2
+outfile3
+total 28
+drwxrwxr-x 2 kevin kevin 4096 May 17 14:59 .
+drwxrwxr-x 7 kevin kevin 4096 May 17 14:22 ..
+-rw-rw-r-- 1 kevin kevin  336 May 17 14:32 infile
+-rw------- 1 kevin kevin   24 May 17 14:44 outfile
+-rw-rw-r-- 1 kevin kevin  378 May 17 15:15 outfile1
+-rw-rw-r-- 1 kevin kevin  336 May 17 15:00 outfile2
+-rw------- 1 kevin kevin  336 May 17 15:01 outfile3
+kevin@kevin-Satellite-P55-A$ cat outfile1 # o     | sort | tr a-z A_ -Z # testing         testing           >> outfile1 | testing appending afr ter redirection and piping
+EXEC: No such file or directory
+kevin@kevin-Satellite-P55-A$ cat outfile1 | sort | tr a-z A-Z >> outfile1 | # testing appendong after d redirection and piping,.. forgot to comment
+kevin@kevin-Satellite-P55-A$ cato utfile1          outfile1 # check outfile1
+A man's best friend
+A piney apple
+Honeycomb
+Hello world! My name is Kevin
+Starcraft
+Starbucks is diabetes in a cup
+Starbursts is diabetes in a wrapper
+Starfruit is delicious
+Star Wars
+Twinkle Twinkle Little Star
+Unicorn with no horn
+Black coffee
+Zebra with no stripes
+Hairless monkey
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+infile
+outfile
+outfile1
+outfile2
+outfile3
+total 28
+drwxrwxr-x 2 kevin kevin 4096 May 17 14:59 .
+drwxrwxr-x 7 kevin kevin 4096 May 17 14:22 ..
+-rw-rw-r-- 1 kevin kevin  336 May 17 14:32 infile
+-rw------- 1 kevin kevin   24 May 17 14:44 outfile
+-rw-rw-r-- 1 kevin kevin  378 May 17 15:15 outfile1
+-rw-rw-r-- 1 kevin kevin  336 May 17 15:00 outfile2
+-rw------- 1 kevin kevin  336 May 17 15:01 outfile3
+A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+A MAN'S BEST FRIEND
+A PINEY APPLE
+BLACK COFFEE
+DRWXRWXR-X 2 KEVIN KEVIN 4096 MAY 17 14:59 .
+DRWXRWXR-X 7 KEVIN KEVIN 4096 MAY 17 14:22 ..
+HAIRLESS MONKEY
+HELLO WORLD! MY NAME IS KEVIN
+HONEYCOMB
+INFILE
+OUTFILE
+OUTFILE1
+OUTFILE2
+OUTFILE3
+-RW------- 1 KEVIN KEVIN   24 MAY 17 14:44 OUTFILE
+-RW------- 1 KEVIN KEVIN  336 MAY 17 15:01 OUTFILE3
+-RW-RW-R-- 1 KEVIN KEVIN  336 MAY 17 14:32 INFILE
+-RW-RW-R-- 1 KEVIN KEVIN  336 MAY 17 15:00 OUTFILE2
+-RW-RW-R-- 1 KEVIN KEVIN  378 MAY 17 15:15 OUTFILE1
+STARBUCKS IS DIABETES IN A CUP
+STARBURSTS IS DIABETES IN A WRAPPER
+STARCRAFT
+STARFRUIT IS DELICIOUS
+STAR WARS
+TOTAL 28
+TWINKLE TWINKLE LITTLE STAR
+UNICORN WITH NO HORN
+ZEBRA WITH NO STRIPES
+kevin@kevin-Satellite-P55-A$ ls > outfile1  ; outfile1        cat outfile1 # overwt rites outfile1
+infile
+outfile
+outfile1
+outfile2
+outfile3
+kevin@kevin-Satellite-P55-A$ echo extra credit | cat # from g assignment specs
+extra credit
+kevin@kevin-Satellite-P55-A$ cat <<< "extra credit rocks" # from assignment specs
+extra credit rocks
+kevin@kevin-Satellite-P55-A$ # done with test cases  
+kevin@kevin-Satellite-P55-A$ exit
+]0;kevin@kevin-Satellite-P55-A: ~/Desktop/CS100/rshell/test_fileskevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell/test_files$ exit
+exit
+
+Script done on Sun 17 May 2015 03:19:36 PM PDT

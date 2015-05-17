@@ -48,6 +48,7 @@ RShell uses i/o redirection and piping
 - Tabs are not treated as spaces and instead are treated as a character.
 - Multiple I/O redirection without a following pipe will be truncated to the closest redirection such as `cat < file1 < file2 < file3` will be truncated to just `cat < file1`.
 - Appending a flag following a file redirection will result in interpretation of the flag as a command such as `ls > file1 -a`. `-a` will be executed as a command instead of a flag. So input such as `ls > file1 cat file1 | sort` will result in undefined behavior, but in this case an infinite loop. It is important to define your flags before executing a command with redirection.
+- String input redirection, `<<<`, will create a file named `NULL_TEMP.TXT` to store and read from. If the same file name exists, it will be overwritten and deleted!
 
 # ls Implementation
 
