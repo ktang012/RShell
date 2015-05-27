@@ -1,8 +1,9 @@
 #include <queue>
-#include <cstring>
 #include <iostream>
 #include <vector>
 #include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
 #include <sys/stat.h>
@@ -11,10 +12,13 @@
 #include <fcntl.h>
 #include <pwd.h>
 #include <fstream>
+#include <signal.h>
 
 using namespace std;
 using namespace boost;
 
+/* there are some redundant variables that im too scared to delete */
+/* some functions are just used for debugging -- will clean up... one day */
 
 /* note: vector<char*> at(.size()) == '\0' */
 unsigned const NORD = 0; // no rd
@@ -33,6 +37,43 @@ int const MAX_NUM_PIPES = 40;
 int const FD_ARR = 2;
 unsigned const PIPE_READ = 0;
 unsigned const PIPE_WRITE = 1;
+const char* CURR_WD = "PWD";
+const char* OLD_WD = "OLDPWD";
+const char* HOME_DIR = "HOME";
+
+/* only to be used in execvp and signals */
+/* idea for implementing fg and bg
+ * when ctrlZ send pid to stack and resume
+ * if fg then pop and wait
+ * if bg pop and don't wait -- not sure what to do...
+*/
+int pid = 0;
+int child_pid = 0;
+siginfo_t *infop;
+int exec_status = 0;
+
+void get_short_home(string &s) {
+    char* home;
+    if (NULL == (home = secure_getenv(HOME_DIR))) {
+        perror("SECURE_GETENV");
+    }
+    string s_home = home;
+    s.replace(0, s_home.length(), "~");
+}
+
+void print_cwd() {
+    char cwd[BUFSIZ];
+    int size;
+    if (-1 == (size = pathconf(".", _PC_PATH_MAX))) {
+        perror("PATHCONF");
+    }
+    if (NULL == getcwd(cwd, size)) {
+        perror("GETCWD");
+    }
+    string mod_cwd = cwd;
+    get_short_home(mod_cwd);
+    cout << mod_cwd << "$ ";
+}
 
 void pcmd_prompt() {
     struct passwd *user;
@@ -45,7 +86,8 @@ void pcmd_prompt() {
     if (gethostname(host_arr, 1023) == -1) {
         perror("GETHOSTNAME");
     }
-    cout << user->pw_name << "@" << host_arr << "$ ";
+    cout << user->pw_name << "@" << host_arr << ":";
+    print_cwd();
 }
 
 void parse_into_queue(queue<string> &l, const string &s) {
@@ -493,7 +535,8 @@ void pdata(const vector<char*> &v, const pair<unsigned, string> &p, const unsign
 }
 
 bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, queue<unsigned> &pipes, const int num_pipes) {
-    int status;
+    //int exec_status;
+    int exec_status;
     int fd_2d [MAX_NUM_PIPES][FD_ARR];
     int curr_num_pipe = 0;
     make_pipes(fd_2d, num_pipes);
@@ -512,7 +555,7 @@ bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, 
             //pipe = construct_pipe(pipes); //unused variable
         }
         // pdata(sub_v, sub_q, pipe);
-        int pid = fork();
+        pid = fork();
         if (pid < 0) {
             perror("FORK");
             _exit(-1);
@@ -636,11 +679,14 @@ bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, 
                     }
                 }
             }
-            if (-1 == wait(&status)) {
-                perror("WAIT");
+            //if (-1 == waitpid(pid, &status, WUNTRACED)) {
+            //    perror("WAIT");
+            //}
+            if (-1 == waitid(P_PID, pid, infop, WSTOPPED | WCONTINUED | WNOWAIT | WEXITED)) {
+                perror("WAITID");
             }
             ++curr_num_pipe;
-            if (status != 0) {
+            if (exec_status != 0) {
                 return false;
             }
         }
@@ -648,7 +694,166 @@ bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, 
     return true;
 }
 
-int main(){
+bool cmd_cd(queue<string> &q) {
+    if (q.front() == "cd") {
+        q.pop();
+        return true;
+    }
+    return false;
+}
+
+bool home_dir() {
+    char prev[BUFSIZ]; char *home;
+    int size;
+    if (-1 == (size = pathconf(".", _PC_PATH_MAX))) {
+        perror("PATHCONF");
+    }
+    if (NULL == getcwd(prev, size)) {
+        perror("GETCWD PREV");
+    }
+    if (-1 == setenv(OLD_WD, prev, 1)) {
+        perror("SETENV PREV");
+    }
+    if (NULL == (home = secure_getenv(HOME_DIR))) {
+        perror("SECURE_GETENV HOME");
+    }
+    if (-1 == chdir(home)) {
+        perror("CHDIR HOME");
+        return false;
+    }
+    if (-1 == setenv(CURR_WD, home, 1)) {
+        perror("SETENV HOME");
+    }
+    return true;
+}
+
+bool prev_dir(const string &s) {
+    char *prev; char* curr;
+    if (NULL == (curr = secure_getenv(OLD_WD))) {
+        perror("SECURE_GETENV CURR");
+    }
+    if (NULL == (prev = secure_getenv(CURR_WD))) {
+        perror("SECURE_GETENV PREV");
+    }
+    if (-1 == chdir(curr)) {
+        perror("CHDIR \"-\"");
+        return false;
+    }
+    if (-1 == setenv(OLD_WD, prev, 1)) {
+        perror("SETENV PREV");
+    }
+    if (-1 == setenv(CURR_WD, curr, 1)) {
+        perror("SETENV CURR");
+    }
+    return true;
+}
+
+void restore_OLD_WD(char* save_OLD_WD) {
+    if (-1 == setenv(OLD_WD, save_OLD_WD, 1)) {
+        perror("SETENV save_OLD_WD");
+    }
+}
+
+bool path_dir(const string &s) {
+    char prev[BUFSIZ]; char curr[BUFSIZ];
+    char *save_OLD_WD;
+    int size;
+    if (-1 == (size = pathconf(".", _PC_PATH_MAX))) {
+        perror("PATHCONF");
+    }
+    if (NULL == getcwd(prev, size)) {
+        perror("GETCWD PREV");
+    }
+    if (NULL == (save_OLD_WD = secure_getenv(OLD_WD))) {
+        perror("SECURE_GETENV");
+    }
+    if (-1 == setenv(OLD_WD, prev, 1)) {
+        perror("SETENV PREV");
+    }
+    if (-1 == chdir(s.c_str())) {
+        perror("CHDIR PATH");
+        restore_OLD_WD(save_OLD_WD);
+        return false;
+    }
+    if (NULL == getcwd(curr, size)) {
+        perror("GETCWD CURR");
+    }
+    if (-1 == setenv(CURR_WD, curr, 1)) {
+        perror("SETENV CURR");
+    }
+    return true;
+}
+
+bool change_dir(queue<string> &q) {
+    string s;
+    if (q.empty()) {
+        return home_dir();
+    }
+    else if (q.front() == "-") {
+        s = q.front(); q.pop();
+        return prev_dir(s);
+    }
+    else {
+        s = q.front(); q.pop();
+        return path_dir(s);
+    }
+}
+
+void suspend_process(int sig, siginfo_t *siginfo, void *context) {
+    child_pid = pid;
+    if (-1 == kill(child_pid, sig)) {
+        perror("KILL");
+    }
+}
+
+void kill_child(int sig, siginfo_t *siginfo, void *context) {
+    child_pid = pid;
+    if (-1 == kill(child_pid, sig)) {
+        perror("KILL");
+    }
+}
+
+void make_sig_C() {
+    struct sigaction ctrlC;
+    ctrlC.sa_sigaction = &kill_child;
+    ctrlC.sa_flags = SA_SIGINFO | SA_RESTART;
+    if (sigaction(SIGINT, &ctrlC, NULL) < 0) {
+        perror("SIGACTION ctrlC");
+    }
+}
+
+void make_sig_Z() {
+    struct sigaction ctrlZ;
+    ctrlZ.sa_sigaction = &suspend_process;
+    ctrlZ.sa_flags = SA_SIGINFO | SA_RESTART;
+    if (sigaction(SIGTSTP, &ctrlZ, NULL) < 0) {
+        perror("SIGACTION ctrlZ");
+    }
+}
+
+bool cmd_sig(const queue<string> &q) {
+    if (q.front() == "fg" || q.front() == "bg") {
+        return true;
+    }
+    return false;
+}
+
+bool send_sig(queue<string> &q) {
+    string sig = q.front(); q.pop();
+    if (sig == "fg") {
+        if (-1 == kill(child_pid, SIGCONT)) {
+            perror("KILL");
+        }
+    }
+    else if (sig == "bg") {
+
+
+    }
+}
+
+int main() {
+    make_sig_C();
+    make_sig_Z();
     while (1) {
         string cmd_input;
         queue<string> list;
@@ -657,7 +862,7 @@ int main(){
         parse_into_queue(list, cmd_input);
         queue<string> cmd;
         while (!list.empty()) {
-            bool exec_success = false;
+            bool exec_success = false; bool cd_success = false; bool sig_success = false;
             if (list.front() == "#") {
                 break;
             }
@@ -670,27 +875,42 @@ int main(){
                 return 0;
             }
             else {
-                // qinfo(cmd);
-                vector< vector<string> > v_cmd;
-                queue< pair<unsigned, string> > rd_file;
-                queue<unsigned> pipes;
-                int num_pipes = parse_pipes(cmd, v_cmd, rd_file, pipes);
-                // print_cmd_pair(v_cmd, rd_file, pipes);
-                if (num_pipes == NO_MATCH) {
-                    cout << "Syntax error: no matching \" in command" << endl;
-                    break;
+                //qinfo(cmd);
+                if (cmd_cd(cmd)) {
+                    cd_success = change_dir(cmd);
+                    if (!connect_success(cd_success, list)) {
+                        break;
+                    }
                 }
-                if (check_size(v_cmd, rd_file, pipes) && v_cmd.size() != 0 && num_pipes != -1) {
-                    vector< vector<char*> > cs_cmd;
-                    convert_vcmd_to_cscmd(v_cmd, cs_cmd);
-                    exec_success= begin_exec(cs_cmd, rd_file, pipes, num_pipes);
+                else if (cmd_sig(cmd)) {
+                    sig_success = send_sig(cmd);
+                    if (!connect_success(sig_success, list)) {
+                        break;
+                    }
                 }
                 else {
-                    cout << "Syntax error: formatting issue with redirection or piping" << endl;
-                    break;
-                }
-                if (!connect_success(exec_success, list)) {
-                    break;
+                    vector< vector<string> > v_cmd;
+                    queue< pair<unsigned, string> > rd_file;
+                    queue<unsigned> pipes;
+                    int num_pipes = parse_pipes(cmd, v_cmd, rd_file, pipes);
+                    // print_cmd_pair(v_cmd, rd_file, pipes);
+                    if (num_pipes == NO_MATCH) {
+                        cout << "Syntax error: no matching \" in command" << endl;
+                        break;
+                    }
+                    if (check_size(v_cmd, rd_file, pipes) && v_cmd.size() != 0 && num_pipes != -1) {
+                        vector< vector<char*> > cs_cmd;
+                        convert_vcmd_to_cscmd(v_cmd, cs_cmd);
+                        exec_success= begin_exec(cs_cmd, rd_file, pipes, num_pipes);
+                    }
+                    else {
+                        cout << "Syntax error: formatting issue with redirection or piping" << endl;
+                        break;
+                    }
+                    if (!connect_success(exec_success, list)) {
+                        break;
+
+                    }
                 }
             }
             pop_q(cmd);
