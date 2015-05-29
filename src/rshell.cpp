@@ -1,4 +1,5 @@
 #include <queue>
+#include <stack>
 #include <iostream>
 #include <vector>
 #include <unistd.h>
@@ -13,6 +14,7 @@
 #include <pwd.h>
 #include <fstream>
 #include <signal.h>
+#include <errno.h>
 
 using namespace std;
 using namespace boost;
@@ -47,10 +49,11 @@ const char* HOME_DIR = "HOME";
  * if fg then pop and wait
  * if bg pop and don't wait -- not sure what to do...
 */
+
+stack<int> child_processes;
 int pid = 0;
 int child_pid = 0;
 siginfo_t *infop;
-int exec_status = 0;
 
 void get_short_home(string &s) {
     char* home;
@@ -534,8 +537,8 @@ void pdata(const vector<char*> &v, const pair<unsigned, string> &p, const unsign
     }
 }
 
+/* extremely messy - some unused data */
 bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, queue<unsigned> &pipes, const int num_pipes) {
-    //int exec_status;
     int exec_status;
     int fd_2d [MAX_NUM_PIPES][FD_ARR];
     int curr_num_pipe = 0;
@@ -663,6 +666,9 @@ bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, 
                     }
                }
            }
+           //if (-1 == setpgrp()) {
+           //    perror("SETPGRP");
+           //}
            if (-1 == execvp(sub_v[0], sub_v.data())) {
                perror("EXEC");
                _exit(-1);
@@ -679,11 +685,8 @@ bool begin_exec(vector< vector<char*> > &v, queue< pair<unsigned, string> > &q, 
                     }
                 }
             }
-            //if (-1 == waitpid(pid, &status, WUNTRACED)) {
-            //    perror("WAIT");
-            //}
-            if (-1 == waitid(P_PID, pid, infop, WSTOPPED | WCONTINUED | WNOWAIT | WEXITED)) {
-                perror("WAITID");
+            if (-1 == waitpid(pid, &exec_status, WUNTRACED)) {
+                perror("WAIT");
             }
             ++curr_num_pipe;
             if (exec_status != 0) {
@@ -800,15 +803,21 @@ bool change_dir(queue<string> &q) {
 }
 
 void suspend_process(int sig, siginfo_t *siginfo, void *context) {
-    child_pid = pid;
-    if (-1 == kill(child_pid, sig)) {
-        perror("KILL");
+    if (pid == 0) { // if pid == 0, then no fork has been done
+        pid = getpid() + 1; // forces an invalid pid to be killed... hopefully doesn't break stuff
     }
+    if (-1 == kill(pid, SIGTSTP)) {
+        perror("KILL");
+        return;
+    }
+    child_processes.push(pid);
 }
 
 void kill_child(int sig, siginfo_t *siginfo, void *context) {
-    child_pid = pid;
-    if (-1 == kill(child_pid, sig)) {
+    if (pid == 0) {
+        pid = getpid() + 1;
+    }
+    if (-1 == kill(pid, sig)) {
         perror("KILL");
     }
 }
@@ -838,16 +847,37 @@ bool cmd_sig(const queue<string> &q) {
     return false;
 }
 
+/* fg bug - ctrl c one child process terminates next child process when calling fg again */
+/* bg bug - includes fg bug and fails to close stdin for child process */
 bool send_sig(queue<string> &q) {
     string sig = q.front(); q.pop();
     if (sig == "fg") {
+        if (child_processes.empty()) {
+            cout << "fg - cannot find a process" << endl;
+            return false;
+        }
+        int status;
+        child_pid = child_processes.top(); child_processes.pop();
         if (-1 == kill(child_pid, SIGCONT)) {
             perror("KILL");
         }
+        pid = child_pid;
+        if (-1 == waitpid(child_pid, &status, WUNTRACED)) {
+            perror("WAIT");
+        }
+        return true;
     }
     else if (sig == "bg") {
-
-
+        if (child_processes.empty()) {
+            cout << "bg - cannot find a process" << endl;
+            return false;
+        }
+        int status;
+        child_pid = child_processes.top();
+        if (-1 == kill(child_pid, SIGCONT)) {
+            perror("KILL");
+        }
+        return true;
     }
 }
 
@@ -861,8 +891,8 @@ int main() {
         getline(cin, cmd_input);
         parse_into_queue(list, cmd_input);
         queue<string> cmd;
+        bool cd_success = false; bool sig_success = false; bool exec_success = false;
         while (!list.empty()) {
-            bool exec_success = false; bool cd_success = false; bool sig_success = false;
             if (list.front() == "#") {
                 break;
             }
