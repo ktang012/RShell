@@ -1,0 +1,419 @@
+Script started on Fri 29 May 2015 06:12:44 PM PDT
+]0;kevin@kevin-Satellite-P55-A: ~/Desktop/CS100/rshellkevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ ..[K[Kbin/rshell # Starting S[KRShell
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ cd ~ Switchin          # Switching to home directory
+kevin@kevin-Satellite-P55-A:~$              cd                -    # sw  Switching to previous  , with spaces
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$          cd          - # Switching top  previous, with spaces
+kevin@kevin-Satellite-P55-A:~$ ls # Checking directory
+Desktop  Documents  Downloads  examples.desktop  Music	Pictures  Public  Templates  Videos
+kevin@kevin-Satellite-P55-A:~$ cd           cd                Desktop/GitTest/signals     # Swt itchi       Going to hrough 3 folders, with spaces
+kevin@kevin-Satellite-P55-A:~/Desktop/GitTest/signals$ ls # Verifying switch
+a.out  env.cpp	signals.cpp
+kevin@kevin-Satellite-P55-A:~/Desktop/GitTest/signals$                          cd                      cd ../../CS100/rshell/sc rc # Going through a bunch of directories
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell/src$ ls # Verifying switch
+a.out  cp.cpp  ls.cpp  mv.cpp  orig_rshell.cpp	outfile1  rm.cpp  rshell  rshell.cpp  Timer.h
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell/src$                 cd          -   # going         Going to previous
+kevin@kevin-Satellite-P55-A:~/Desktop/GitTest/signals$   cd    -           cd - # Going to previous, again
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell/src$ cd # Going back to home                       cd .. # Going to parent
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ cd - # Going to previous
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell/src$ cd .. # GOing      oing to parent                    # Passing in current directory
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell/src$ cd   ..       cd #                   cd # going back to home
+kevin@kevin-Satellite-P55-A:~$ cd Documents Desktop p/CS100 # Attempting to pass in two paths -- only goi es to first captured path
+kevin@kevin-Satellite-P55-A:~/Documents$ cd - # Going to previous
+kevin@kevin-Satellite-P55-A:~$ cd .. # Going to parent of home/ /user
+kevin@kevin-Satellite-P55-A:~$ ls # Checking directory
+kevin
+kevin@kevin-Satellite-P55-A:~$ cd .. $ # Going even further
+kevin@kevin-Satellite-P55-A:~$ ls # Checking directory
+bin   cdrom  etc   initrd.img	   lib	  lost+found  mnt  proc  run   srv  tmp  var	  vmlinuz.old
+boot  dev    home  initrd.img.old  lib64  media       opt  root  sbin  sys  usr  vmlinuz
+kevin@kevin-Satellite-P55-A:~$ ### Test          cd # Going backt  to home
+kevin@kevin-Satellite-P55-A:~$ ls # Verifying if home
+Desktop  Documents  Downloads  examples.desktop  Music	Pictures  Public  Templates  Videos
+kevin@kevin-Satellite-P55-A:~$ ####  TESTING SIGNALS ###
+kevin@kevin-Satellite-P55-A:~$ # T  # Testing Ctrl C with no running processes ##
+kevin@kevin-Satellite-P55-A:~$ ^CKILL: No such process
+^CKILL: No such process
+^CKILL: No such process
+^CKILL: No such process
+^CKILL: No such process
+^CKILL: No such process
+^CKILL: No such process
+^CKILL: No such process
+^CKILL: No such process
+# Doesn't exit Rsh  Shell #
+kevin@kevin-Satellite-P55-A:~$ ls # Verifying we're still in Rs Shell
+Desktop  Documents  Downloads  examples.desktop  Music	Pictures  Public  Templates  Videos
+kevin@kevin-Satellite-P55-A:~$ ## Testing Ctrl Z with no running processes ##
+kevin@kevin-Satellite-P55-A:~$ ^ZKILL: No such process
+^ZKILL: No such process
+^ZKILL: No such process
+^ZKILL: No such process
+^ZKILL: No such process
+^ZKILL: No such process
+^ZKILL: No such process
+^ZKILL: No such process
+# Doesn't suspend RShell #
+kevin@kevin-Satellite-P55-A:~$ ls # Verifying RShell
+Desktop  Documents  Downloads  examples.desktop  Music	Pictures  Public  Templates  Videos
+kevin@kevin-Satellite-P55-A:~$ cat # Testing CT trlC with cat
+Hi im in a cat
+Hi im in cat
+Pressing Ctlr    lr  rl C
+Pressing Ctrl C
+^Ckevin@kevin-Satellite-P55-A:~$ ps # Seeing if cat is still running -- it's not
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5236 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ Desktop/CS100/rshell/src/a.out # Running RSHell    hell inside RShell
+kevin@kevin-Satellite-P55-A:~$ ps # Ver   Seeing our two RShells
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5237 pts/7    00:00:00 a.out
+ 5238 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ ## Testing CtrlC of RShe      n RSHell    hell inside RShell ##
+kevin@kevin-Satellite-P55-A:~$ ^CKILL: No such process
+^CKILL: No such process
+KILL: No such process
+^CKILL: No such process
+KILL: No such process
+^CKILL: No such process
+KILL: No such process
+^CKILL: No such process
+KILL: No such process
+^CKILL: No such process
+KILL: No such process
+# Signal is sent to both #
+kevin@kevin-Satellite-P55-A:~$ exit # Exitting ou        ting our second RSHel   hell
+kevin@kevin-Satellite-P55-A:~$ ps # Only one Rshell       Shell left
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5240 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ ### Testing Ctrl Z on cat ###
+kevin@kevin-Satellite-P55-A:~$ cat # CtrlZ
+hi im si  inside of a cat
+hi im inside of a cat
+pre   Ctrl Z
+Ctrl Z
+^Zkevin@kevin-Satellite-P55-A:~$ ps # Seeing if cat is suspended
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5243 pts/7    00:00:00 cat
+ 5244 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ fg # Bringing cat back to                           fg # Bring csat   at back to foreground
+hi im inside of a cat again
+hi im inside of a cat again
+ctr   Ctrl Z
+Ctrl Z
+^Zkevin@kevin-Satellite-P55-A:~$ ps # Seeing if cat is still suspended
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5243 pts/7    00:00:00 cat
+ 5245 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ fg # Killing the cat now
+ki  killing cat
+killing cat
+^Ckevin@kevin-Satellite-P55-A:~$ ps # Seeing cs  if cat is gone
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5250 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ ### Testing Ctrl Z on multiple cats ###
+kevin@kevin-Satellite-P55-A:~$ cat # cat 1
+^Zkevin@kevin-Satellite-P55-A:~$ cat # cat 2
+^Zkevin@kevin-Satellite-P55-A:~$ cat # cat 3
+^Zkevin@kevin-Satellite-P55-A:~$ cat # cat 4
+^Zkevin@kevin-Satellite-P55-A:~$ cat # cat 5
+^Zkevin@kevin-Satellite-P55-A:~$ ps # Seein all    g all our cats
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5251 pts/7    00:00:00 cat
+ 5252 pts/7    00:00:00 cat
+ 5253 pts/7    00:00:00 cat
+ 5254 pts/7    00:00:00 cat
+ 5255 pts/7    00:00:00 cat
+ 5256 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ fg # Bringing back our most     ost recent cat
+hi im in a cat
+hi im in a cat
+Ctrl C
+Ctrl C
+^CKILL: No such process
+kevin@kevin-Satellite-P55-A:~$ ps
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5251 pts/7    00:00:00 cat
+ 5252 pts/7    00:00:00 cat
+ 5253 pts/7    00:00:00 cat
+ 5254 pts/7    00:00:00 cat
+ 5257 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ # One cat was eliminated #
+kevin@kevin-Satellite-P55-A:~$ fg # If  BUG: Bringing back the remaining cats will kill them
+kevin@kevin-Satellite-P55-A:~$ ps # Our cat died
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5251 pts/7    00:00:00 cat
+ 5252 pts/7    00:00:00 cat
+ 5253 pts/7    00:00:00 cat
+ 5259 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ fg # BUG: Se  Read READ         See README.md for more info
+kevin@kevin-Satellite-P55-A:~$ ps # Our other cat died
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5251 pts/7    00:00:00 cat
+ 5252 pts/7    00:00:00 cat
+ 5260 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ fg
+kevin@kevin-Satellite-P55-A:~$ fg
+kevin@kevin-Satellite-P55-A:~$ ps # All cats died
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5261 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ ### Testing CtrlZ  Z and bg ###
+kevin@kevin-Satellite-P55-A:~$ firefox reddit.com                  cat # Sending cat to bg
+hi im in cat
+hi im in cat
+^Zkevin@kevin-Satellite-P55-A:~$ bg # Sending c         NOW sending cat to bg
+kevin@kevin-Satellite-P55-A:~$ ps # In  BUG: Input conflict  ing with cat and RShell
+ps # BUG: Input conflicting with cat and RShell
+ps # BUG: RE ead    SEE  ee README> , .md
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5263 pts/7    00:00:00 cat
+ 5267 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ kill -9 5263 # Attemtp  pting to kill cat
+kill -9 5263 # Attempting to kill cat
+kill -9 5263 # Ate tempting to kill cat
+kill -9 5263 # Attempting to kill cat
+ps # Checking if cat e is alive
+ps # Checking if cat is alive
+ps
+ps
+ps  ^CKILL: No such process
+^ZKILL: No such process
+ps
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5263 pts/7    00:00:00 cat <defunct>
+ 5268 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ #  ## bg is know          BUG: bg is known to create zombie processes ###
+kevin@kevin-Satellite-P55-A:~$ ### Using fg and bg on no processes ###
+kevin@kevin-Satellite-P55-A:~$ fg
+kevin@kevin-Satellite-P55-A:~$ ps
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5270 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ ## Brought back and kiled cat ##
+kevin@kevin-Satellite-P55-A:~$ fg
+fg - cannot find a process
+kevin@kevin-Satellite-P55-A:~$ bg
+bg - cannot find a process
+kevin@kevin-Satellite-P55-A:~$ ## Bu UG: fg is known to bring back                                 ### Using both fg and bg ###
+kevin@kevin-Satellite-P55-A:~$ cat
+^Zkevin@kevin-Satellite-P55-A:~$ cat
+^Zkevin@kevin-Satellite-P55-A:~$ cat
+^Zkevin@kevin-Satellite-P55-A:~$ ps # 3 cats
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5271 pts/7    00:00:00 cat
+ 5272 pts/7    00:00:00 cat
+ 5273 pts/7    00:00:00 cat
+ 5274 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ fg # Using fg first
+lol cat
+lol cat
+ctrl C
+ctrl C
+i mean c ctrl ZX 
+i mean ctrl Z
+^Zkevin@kevin-Satellite-P55-A:~$ ps # See processes
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5271 pts/7    00:00:00 cat
+ 5272 pts/7    00:00:00 cat
+ 5273 pts/7    00:00:00 cat
+ 5275 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ fg # Using            bg # Using bg
+kevin@kevin-Satellite-P55-A:~$ ps
+ps
+ps  
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5271 pts/7    00:00:00 cat
+ 5272 pts/7    00:00:00 cat
+ 5273 pts/7    00:00:00 cat
+ 5276 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ bg
+bg
+bg
+kevin@kevin-Satellite-P55-A:~$ ps
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5271 pts/7    00:00:00 cat
+ 5272 pts/7    00:00:00 cat
+ 5273 pts/7    00:00:00 cat
+ 5277 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ ps
+ps
+ps
+ps
+ps
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5271 pts/7    00:00:00 cat
+ 5272 pts/7    00:00:00 cat
+ 5273 pts/7    00:00:00 cat
+ 5278 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ ### Notice thre   wo cats are running, prompting three user ino puts ###
+### Notice two cats are running, prompting three user inputs ###
+ps
+ps
+fg
+fg
+fg
+^CKILL: No such process
+kevin@kevin-Satellite-P55-A:~$ ps # Checking processes
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5271 pts/7    00:00:00 cat
+ 5272 pts/7    00:00:00 cat
+ 5280 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ fg
+kevin@kevin-Satellite-P55-A:~$ fg
+kevin@kevin-Satellite-P55-A:~$ fg
+fg - cannot find a process
+kevin@kevin-Satellite-P55-A:~$ ps # Check
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5281 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ ### BUG: fg is known to kill a other "chained" processes if CtrlC is used ###
+kevin@kevin-Satellite-P55-A:~$ ### Testing CtrlZ on firefox ###
+kevin@kevin-Satellite-P55-A:~$ firefox red   google.com  
+
+(process:5284): GLib-CRITICAL **: g_slice_set_config: assertion 'sys_page_size == 0' failed
+
+(firefox:5284): GLib-GObject-WARNING **: Attempt to add property GnomeProgram::sm-connect after class was initialised
+
+(firefox:5284): GLib-GObject-WARNING **: Attempt to add property GnomeProgram::show-crash-dialog after class was initialised
+
+(firefox:5284): GLib-GObject-WARNING **: Attempt to add property GnomeProgram::display after class was initialised
+
+(firefox:5284): GLib-GObject-WARNING **: Attempt to add property GnomeProgram::default-icon after class was initialised
+WARNING: content window passed to PrivateBrowsingUtils.isWindowPrivate. Use isContentWindowPrivate instead (but only for frame scripts).
+pbu_isWindowPrivate@resource://gre/modules/PrivateBrowsingUtils.jsm:25:14
+pbs<@resource://unity/observer.js:38:71
+Observer.prototype.observe@resource://unity/observer.js:77:24
+get_contentWindow@chrome://global/content/bindings/browser.xml:404:54
+get_securityUI@chrome://global/content/bindings/browser.xml:654:17
+browser_XBL_Constructor@chrome://global/content/bindings/browser.xml:778:17
+WARNING: content window passed to PrivateBrowsingUtils.isWindowPrivate. Use isContentWindowPrivate instead (but only for frame scripts).
+pbu_isWindowPrivate@resource://gre/modules/PrivateBrowsingUtils.jsm:25:14
+pbs<@resource://unity/observer.js:38:71
+Observer.prototype.observe@resource://unity/observer.js:77:24
+WARNING: content window passed to PrivateBrowsingUtils.isWindowPrivate. Use isContentWindowPrivate instead (but only for frame scripts).
+pbu_isWindowPrivate@resource://gre/modules/PrivateBrowsingUtils.jsm:25:14
+pbs<@resource://unity/observer.js:38:71
+Observer.prototype.observe@resource://unity/observer.js:77:24
+WARNING: content window passed to PrivateBrowsingUtils.isWindowPrivate. Use isContentWindowPrivate instead (but only for frame scripts).
+pbu_isWindowPrivate@resource://gre/modules/PrivateBrowsingUtils.jsm:25:14
+pbs<@resource://unity/observer.js:38:71
+Observer.prototype.observe@resource://unity/observer.js:77:24
+@chrome://browser/content/content.js:57:5
+addTab@chrome://browser/content/tabbrowser.xml:1745:15
+ssi_restoreWindow@resource:///modules/sessionstore/SessionStore.jsm:2384:1
+ssi_onLoad@resource:///modules/sessionstore/SessionStore.jsm:841:11
+SessionStoreInternal.onBeforeBrowserWindowShown/<@resource:///modules/sessionstore/SessionStore.jsm:1007:9
+Handler.prototype.process@resource://gre/modules/Promise.jsm -> resource://gre/modules/Promise-backend.js:870:23
+this.PromiseWalker.walkerLoop@resource://gre/modules/Promise.jsm -> resource://gre/modules/Promise-backend.js:749:7
+this.PromiseWalker.scheduleWalkerLoop/<@resource://gre/modules/Promise.jsm -> resource://gre/modules/Promise-backend.js:691:37
+WARNING: content window passed to PrivateBrowsingUtils.isWindowPrivate. Use isContentWindowPrivate instead (but only for frame scripts).
+pbu_isWindowPrivate@resource://gre/modules/PrivateBrowsingUtils.jsm:25:14
+pbs<@resource://unity/observer.js:38:71
+Observer.prototype.observe@resource://unity/observer.js:77:24
+@chrome://browser/content/content.js:57:5
+_createPreloadBrowser@chrome://browser/content/tabbrowser.xml:1563:13
+_handleNewTab@chrome://browser/content/tabbrowser.xml:4322:11
+addTab/<@chrome://browser/content/tabbrowser.xml:1697:17
+WARNING: content window passed to PrivateBrowsingUtils.isWindowPrivate. Use isContentWindowPrivate instead (but only for frame scripts).
+pbu_isWindowPrivate@resource://gre/modules/PrivateBrowsingUtils.jsm:25:14
+pbs<@resource://unity/observer.js:38:71
+Observer.prototype.observe@resource://unity/observer.js:77:24
+WARNING: content window passed to PrivateBrowsingUtils.isWindowPrivate. Use isContentWindowPrivate instead (but only for frame scripts).
+pbu_isWindowPrivate@resource://gre/modules/PrivateBrowsingUtils.jsm:25:14
+pbs<@resource://unity/observer.js:38:71
+Observer.prototype.observe@resource://unity/observer.js:77:24
+WARNING: content window passed to PrivateBrowsingUtils.isWindowPrivate. Use isContentWindowPrivate instead (but only for frame scripts).
+pbu_isWindowPrivate@resource://gre/modules/PrivateBrowsingUtils.jsm:25:14
+pbs<@resource://unity/observer.js:38:71
+Observer.prototype.observe@resource://unity/observer.js:77:24
+get_contentWindow@chrome://global/content/bindings/browser.xml:404:54
+get_securityUI@chrome://global/content/bindings/browser.xml:654:17
+browser_XBL_Constructor@chrome://global/content/bindings/browser.xml:778:17
+SelfSupportBackendInternal._makeHiddenBrowser/<@resource://app/modules/SelfSupportBackend.jsm:192:7
+WARNING: content window passed to PrivateBrowsingUtils.isWindowPrivate. Use isContentWindowPrivate instead (but only for frame scripts).
+pbu_isWindowPrivate@resource://gre/modules/PrivateBrowsingUtils.jsm:25:14
+pbs<@resource://unity/observer.js:38:71
+Observer.prototype.observe@resource://unity/observer.js:77:24
+^Zkevin@kevin-Satellite-P55-A:~$ ps # See firefox in  suspended
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5284 pts/7    00:00:03 firefox
+ 5368 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ bg # F firefox is working                         fg # firefox is no longer suspended
+can't     RShell is blocked from inputting
+^Zkevin@kevin-Satellite-P55-A:~$ bg # sending firefox to background
+kevin@kevin-Satellite-P55-A:~$ ps # See firefox
+  PID TTY          TIME CMD
+ 5202 pts/7    00:00:00 bash
+ 5214 pts/7    00:00:00 rshell
+ 5284 pts/7    00:00:06 firefox
+ 5377 pts/7    00:00:00 ps
+kevin@kevin-Satellite-P55-A:~$ fg
+Firefox is brought back to foreground
+ctrl    ^Ckevin@kevin-Satellite-P55-A:~$ ## Closed firefox via ctrlC ##
+kevin@kevin-Satellite-P55-A:~$ exit ##       ## Ending       xiting RShell to test more cases of signals ##
+kevin@kevin-Satellite-P55-A:~$ exit
+]0;kevin@kevin-Satellite-P55-A: ~/Desktop/CS100/rshellkevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ bin/rshell # Starting RShell
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ # S Using Crl  trl C and Ctrl Z without running a processes prior #   #
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ ^C^C
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ ^Zz ^Z^Z
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ #   cat #       # Does not display errors #
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ cat # Our first process
+^Ckevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ #   #  # Killed cat, running mroe ctrl C ##
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ ^CKILL: No such process
+^CKILL: No such process
+^CKILL: No such process
+^CKILL: No such process
+^CKILL: No such process
+## Error is being displayed ##
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ ^ZKILL: No such process
+^ZKILL: No such process
+^ZKILL: No such process
+^ZKILL: No such process
+^ZKILL: No such process
+## Sae   Error is beign dispa lated ##
+kevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ exit ## LEav   eaving RShell ##
+]0;kevin@kevin-Satellite-P55-A: ~/Desktop/CS100/rshellkevin@kevin-Satellite-P55-A:~/Desktop/CS100/rshell$ exit
+exit
+
+Script done on Fri 29 May 2015 06:44:28 PM PDT

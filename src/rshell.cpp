@@ -872,13 +872,13 @@ bool send_sig(queue<string> &q) {
             cout << "bg - cannot find a process" << endl;
             return false;
         }
-        int status;
         child_pid = child_processes.top();
         if (-1 == kill(child_pid, SIGCONT)) {
             perror("KILL");
         }
         return true;
     }
+    return false;
 }
 
 int main() {

@@ -37,6 +37,24 @@ RShell uses i/o redirection and piping
 
 - `|` is piping and is used to allow different programs to communicate with one another.
 
+### Changing Directories
+
+RShell supports changing directories.
+
+- `cd` takes you back to your home directory.
+
+- `cd -` takes you back to a previous directory. If the previous directory is not set, it will fail.
+
+- `cd [PATH]` will take you the specified path.
+
+### Signals - Ctrl C and Ctrl Z
+
+- `Ctrl C` will terminate your current shell process. If there are no existing child processes it will fail.
+
+- `Ctrl Z` will suspend your current shell process. If there are no existing child processes it will fail.
+
+- `fg` and `bg` are supported, but are implemented in a simplistic manner. `fg` will bring back only the most recent process that has been suspended. `bg` will send to the background the most recent process. There are input and output conflicts associated with the process being sent to the background!
+
 ## Known Bugs and Issues
 
 - Everything after `#` will be treated as a comment regardless of its integrity in the command.
@@ -49,6 +67,10 @@ RShell uses i/o redirection and piping
 - Multiple I/O redirection without a following pipe will be truncated to the closest redirection such as `cat < file1 < file2 < file3` will be truncated to just `cat < file1`.
 - Appending a flag following a file redirection will result in interpretation of the flag as a command such as `ls > file1 -a`. `-a` will be executed as a command instead of a flag. So input such as `ls > file1 cat file1 | sort` will result in undefined behavior, but in this case an infinite loop. It is important to define your flags before executing a command with redirection.
 - String input redirection, `<<<`, will create a file named `NULL_TEMP.TXT` to store and read from. If the same file name exists, it will be overwritten and deleted!
+- When multiple processes are suspended, and one process is brought back up with `fg` and terminated with `Ctrl C`, and another previously suspended process is brought back up with `fg` will be terminated immediately.
+- `bg` is known to cause conflicting issues between RShell's input and the background processes' input.
+- `fg` and `bg` may create zombie processes if used together on the same "chain" of commands. There are other conflicting issues between the two where `fg` may leave `bg` suspended and another `fg` prompt is needed to kill it.
+- If no other processes are being ran, `Ctrl + C` and `Ctrl + Z` will prompt an error only after a command has been executed.
 
 # ls Implementation
 
