@@ -57,8 +57,8 @@ siginfo_t *infop;
 
 void get_short_home(string &s) {
     char* home;
-    if (NULL == (home = secure_getenv(HOME_DIR))) {
-        perror("SECURE_GETENV");
+    if (NULL == (home = getenv(HOME_DIR))) {
+        perror("GETENV");
     }
     string s_home = home;
     s.replace(0, s_home.length(), "~");
@@ -717,8 +717,8 @@ bool home_dir() {
     if (-1 == setenv(OLD_WD, prev, 1)) {
         perror("SETENV PREV");
     }
-    if (NULL == (home = secure_getenv(HOME_DIR))) {
-        perror("SECURE_GETENV HOME");
+    if (NULL == (home = getenv(HOME_DIR))) {
+        perror("GETENV HOME");
     }
     if (-1 == chdir(home)) {
         perror("CHDIR HOME");
@@ -732,11 +732,11 @@ bool home_dir() {
 
 bool prev_dir(const string &s) {
     char *prev; char* curr;
-    if (NULL == (curr = secure_getenv(OLD_WD))) {
-        perror("SECURE_GETENV CURR");
+    if (NULL == (curr = getenv(OLD_WD))) {
+        perror("GETENV CURR");
     }
-    if (NULL == (prev = secure_getenv(CURR_WD))) {
-        perror("SECURE_GETENV PREV");
+    if (NULL == (prev = getenv(CURR_WD))) {
+        perror("GETENV PREV");
     }
     if (-1 == chdir(curr)) {
         perror("CHDIR \"-\"");
@@ -767,8 +767,8 @@ bool path_dir(const string &s) {
     if (NULL == getcwd(prev, size)) {
         perror("GETCWD PREV");
     }
-    if (NULL == (save_OLD_WD = secure_getenv(OLD_WD))) {
-        perror("SECURE_GETENV");
+    if (NULL == (save_OLD_WD = getenv(OLD_WD))) {
+        perror("GETENV");
     }
     if (-1 == setenv(OLD_WD, prev, 1)) {
         perror("SETENV PREV");
